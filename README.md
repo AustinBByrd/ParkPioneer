@@ -26,7 +26,7 @@ Calculate best parks based on distance matrix from all included points A and Poi
 
 
 ## React Tree:
-
+<img width="757" alt="image" src="https://github.com/AustinBByrd/ParkPioneer/blob/main/assets/ParkPioneer.png">
 
 
 ## Schema:
