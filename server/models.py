@@ -1,4 +1,7 @@
-
+from sqlalchemy.orm import validates
+from sqlalchemy.ext.hybrid import hybrid_property
+from config import db, bcrypt
+from sqlalchemy_serializer import SerializerMixin
 
 
 class User(db.Model, SerializerMixin):
@@ -6,14 +9,34 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
     username = db.Column(db.String, unique=True, nullable=False)
-    password_hash = db.Column(db.String)
+    _password_hash = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     # Relationships
-    favorite_parks = db.relationship('FavoritePark', backref='user', lazy=True)
-    houses = db.relationship('House', backref='user', lazy=True)
-    user_activity_logs = db.relationship('UserActivityLog', backref='user', lazy=True)
+    favorite_parks = db.relationship('FavoritePark', back_populates='user', lazy=True)
+    houses = db.relationship('House', back_populates='user', lazy=True)
+    user_activity_logs = db.relationship('UserActivityLog', back_populates='user', lazy=True)
 
+    @hybrid_property
+    def password_hash(self):
+        raise AttributeError('Password hashes may not be viewed.')
+
+    @password_hash.setter
+    def password_hash(self, password):
+        password_hash = bcrypt.generate_password_hash(password.encode('utf-8'))
+        self._password_hash = password_hash.decode('utf-8')
+
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'username': self.username,
+            'created_at': self.created_at.isoformat(),
+            
+        }    
 
 class Park(db.Model, SerializerMixin):
     __tablename__ = 'parks'
@@ -24,7 +47,7 @@ class Park(db.Model, SerializerMixin):
     amenities = db.Column(db.Text)
 
     # Relationship
-    favorite_parks = db.relationship('FavoritePark', backref='park', lazy=True)
+    favorite_parks = db.relationship('FavoritePark', back_populates='park', lazy=True)
 
 class FavoritePark(db.Model, SerializerMixin):
     __tablename__ = 'favorite_parks'
@@ -33,11 +56,17 @@ class FavoritePark(db.Model, SerializerMixin):
     park_id = db.Column(db.Integer, db.ForeignKey('parks.id'))
     date_added = db.Column(db.DateTime, server_default=db.func.now())
 
+    user = db.relationship("User", back_populates='favorite_parks')
+    park = db.relationship("Park", back_populates='favorite_parks') 
+
+
 class House(db.Model, SerializerMixin):
     __tablename__ = 'houses'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     address = db.Column(db.String)
+
+    user = db.relationship("User", back_populates='houses')
 
 class UserActivityLog(db.Model, SerializerMixin):
     __tablename__ = 'user_activity_logs'
@@ -46,18 +75,25 @@ class UserActivityLog(db.Model, SerializerMixin):
     activity_type = db.Column(db.String)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
+    user = db.relationship("User", back_populates='user_activity_logs')
+
 class Event(db.Model, SerializerMixin):
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
     park_id = db.Column(db.Integer, db.ForeignKey('parks.id'))
     name = db.Column(db.String)
     description = db.Column(db.Text)
-    date = db.Column(db.DateTime)
+    start = db.Column(db.DateTime)
+    end = db.Column(db.DateTime)
 
     # Relationship
-    user_events = db.relationship('UserEvent', backref='event', lazy=True)
+    user_events = db.relationship('UserEvent', back_populates='event', lazy=True)
 
 class UserEvent(db.Model, SerializerMixin):
     __tablename__ = 'user_events'
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
+
+    event = db.relationship("Event", back_populates="user_events")
+
+    

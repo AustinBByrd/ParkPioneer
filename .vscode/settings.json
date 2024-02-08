@@ -1,0 +1,9 @@
+{
+    "cSpell.words": [
+        "dotenv",
+        "jsonify",
+        "reqparse",
+        "sqlalchemy",
+        "SUPABASE"
+    ]
+}

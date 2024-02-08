@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "parkpioneer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,13 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.2",
-    "aos": "^2.3.4",
-    "dotenv": "^16.3.1",
+    "@react-google-maps/api": "^2.19.2",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.1",
+    "moment": "^2.30.1",
     "react": "^18.2.0",
+    "react-big-calendar": "^1.8.7",
     "react-dom": "^18.2.0",
-    "supabase": "^1.131.3",
-    "tailwindcss": "^3.4.0"
+    "react-router-dom": "^6.22.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
