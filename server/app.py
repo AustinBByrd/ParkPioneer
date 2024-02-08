@@ -71,7 +71,7 @@ event_parser.add_argument('start', required=True, help="Start date/time cannot b
 event_parser.add_argument('end', required=True, help="End date/time cannot be blank!")
 event_parser.add_argument('park_id', type=int, required=True, help="Park ID cannot be blank!")
 
-
+# test
 class EventAPI(Resource):
     def get(self, event_id=None):
         if event_id:
