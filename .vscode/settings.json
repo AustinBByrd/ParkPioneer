@@ -1,9 +1,8 @@
 {
     "cSpell.words": [
         "dotenv",
-        "jsonify",
-        "reqparse",
         "sqlalchemy",
+        "SQLALCHEMY",
         "SUPABASE"
     ]
 }

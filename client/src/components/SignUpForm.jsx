@@ -1,7 +1,7 @@
 // src/components/SignUpForm.jsx
 import React, { useState } from 'react';
 import './SignUpForm.css'; 
-import axios from 'axios';// Ensure this CSS file exists for styling
+import axios from 'axios';
 
 function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -35,20 +35,27 @@ function SignUpForm() {
     e.preventDefault();
     const errors = validate();
     if (Object.keys(errors).length === 0) {
+        const submitData = {
+            ...formData,
+            username: formData.name, 
+        };
+        delete submitData.name;
+  
         try {
-            const response = await axios.post('http://127.0.0.1:5555/api/signup', formData);
-            setSuccessMessage('User created successfully.'); // Set success message
-            setFormErrors({}); // Clear form errors
-            setServerError(''); // Clear any existing server error
-            // You might want to clear the form or redirect the user as well
+            const response = await axios.post('http://127.0.0.1:5555/api/signup', submitData);
+            setSuccessMessage('User created successfully.');
+            setFormErrors({});
+            setServerError('');
+            
         } catch (error) {
-            setServerError(error.response.data.message); // Set server error message
-            setSuccessMessage(''); // Clear any existing success message
+            setServerError(error.response.data.message); 
+            setSuccessMessage(''); 
         }
     } else {
         setFormErrors(errors);
     }
-};
+  };
+  
 
 
 

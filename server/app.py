@@ -1,20 +1,28 @@
 from datetime import datetime
 import os
 from dateutil import parser as dateutil_parser
+import re
 
 from flask import Flask, request, session, jsonify, send_from_directory, make_response
 from flask_restful import Resource, Api, reqparse
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+from sqlalchemy import func
 
 from config import app, db, api
 from models import User, Park, FavoritePark, House, UserActivityLog, Event, UserEvent
 
+
+bcrypt = Bcrypt(app)
+CORS(app)
+
 class CheckSession(Resource):
     def get(self):
-        user = User.query.filter(User.id == session.get('user_id')).first()
-        if user:
-            return make_response(user.to_dict(), 200)
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                return user.to_dict(), 200
         return {'error': 'Unauthorized'}, 401
 
 class Users(Resource):
@@ -25,43 +33,47 @@ class Users(Resource):
 
 class Login(Resource):
     def post(self):
-        username = request.json.get('username')
-        password = request.json.get('password')
-        user = User.query.filter(User.username == username).first()
-        if user and user.authenticate(password):
+        data = request.get_json()
+        login_value = data.get('login') or data.get('email') or data.get('username')
+
+        if re.match(r"[^@]+@[^@]+\.[^@]+", login_value):
+            # It's an email, compare in lowercase
+            user = User.query.filter(func.lower(User.email) == func.lower(login_value)).first()
+        else:
+            # It's a username, compare in lowercase
+            user = User.query.filter(func.lower(User.username) == func.lower(login_value)).first()
+
+        if user and bcrypt.check_password_hash(user._password_hash, data['password']):
             session['user_id'] = user.id
             return user.to_dict(), 200
-        return make_response({'error': '401 Unauthorized'}, 401)
+        return {'error': 'Invalid credentials'}, 401
+
 
 class SignUp(Resource):
     def post(self):
         data = request.get_json()
-        existing_user = User.query.filter_by(email=data['email']).first()
-        if existing_user:
-            return {'message': 'User already exists'}, 400
 
-        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-        user = User(username=data['name'], email=data['email'], _password_hash=hashed_password)
-        db.session.add(user)
-        db.session.commit()
-        return {'message': 'User created successfully'}, 201
-    
-class SignUp(Resource):
-    def post(self):
-        data = request.get_json()
-        if not data.get('name') or not data.get('email') or not data.get('password'):
-            return {'message': 'Missing name, email, or password'}, 400
+        if not data.get('email') or not data.get('password'):
+            return {'message': 'Email and password are required'}, 400
+
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", data['email']):
+            return {'message': 'Invalid email format'}, 400
 
         if User.query.filter_by(email=data['email']).first():
-            return {'message': 'User or Email already exists'}, 400
+            return {'message': 'Email already in use'}, 400
 
         hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-        user = User(username=data['name'], email=data['email'], _password_hash=hashed_password)
+        user = User(email=data['email'], _password_hash=hashed_password, username=data.get('username', ''))
 
         db.session.add(user)
         db.session.commit()
 
-        return {'message': 'User created successfully'}, 201
+        return {'message': 'User registered successfully'}, 201
+    
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('loginpage'))
 
 
 event_parser = reqparse.RequestParser()

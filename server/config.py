@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+
 
 load_dotenv()
 from flask import Flask
@@ -23,6 +25,7 @@ app.config['SESSION_COOKIE_NAME'] = 'id'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=1)
 app.json.compact = False
 
 metadata = MetaData(naming_convention={

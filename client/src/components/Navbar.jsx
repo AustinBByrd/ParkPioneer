@@ -1,18 +1,18 @@
 // src/components/Navbar.jsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link } from 'react-router-dom'; 
 import './Navbar.css';
 import logo from '../../../assets/Icon.png';
 
 
 function Navbar() {
-  const [searchQuery, setSearchQuery] = useState(''); // State to hold the search query
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Dummy handler for now
   const handleSearch = (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
-    alert('Search functionality will be implemented soon!'); // Placeholder action
-    setSearchQuery(''); // Optional: clear the search input
+    e.preventDefault();
+    alert('Search functionality will be implemented soon!'); 
+    setSearchQuery(''); 
   };
 
   return (
@@ -38,7 +38,6 @@ function Navbar() {
           <Link to="/AdminConsole">Admin Console</Link>
         </li>
       </ul>
-      {/* Search form */}
       <form onSubmit={handleSearch} className="navbar-search">
         <input
           type="text"
