@@ -20,7 +20,7 @@ function Home() {
                     src={`https://www.google.com/maps/embed/v1/search?q=park%20near%20St.%20Louis%2C%20MO%2C%20USA&key=${googleMapsApiKey}`}
                 ></iframe>
             </div> */}
-            {/* <MyMapComponent /> */}
+            <MyMapComponent />
         </>
     );
 }
