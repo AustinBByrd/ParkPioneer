@@ -8,13 +8,22 @@ from flask_restful import Resource, Api, reqparse
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from sqlalchemy import func
+from flask_login import LoginManager
+from flask import redirect, url_for, flash
+from flask_login import login_required, current_user
+import requests
 
 from config import app, db, api
-from models import User, Park, FavoritePark, House, UserActivityLog, Event, UserEvent
+from models import User, Park, FavoritePark, House, UserActivityLog, Event, UserEvent, UserPreference, UserLocation
 
-
+login_manager = LoginManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
+googleMapsApiKey = os.getenv('GOOGLE_MAPS_API_KEY')
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class CheckSession(Resource):
     def get(self):
@@ -36,16 +45,25 @@ class Login(Resource):
         data = request.get_json()
         login_value = data.get('login') or data.get('email') or data.get('username')
 
+        user = None
         if re.match(r"[^@]+@[^@]+\.[^@]+", login_value):
-            # It's an email, compare in lowercase
+
             user = User.query.filter(func.lower(User.email) == func.lower(login_value)).first()
         else:
-            # It's a username, compare in lowercase
+
             user = User.query.filter(func.lower(User.username) == func.lower(login_value)).first()
 
-        if user and bcrypt.check_password_hash(user._password_hash, data['password']):
+        if not user:
+
+            return {'error': 'User not found'}, 404
+
+        if bcrypt.check_password_hash(user._password_hash, data['password']):
             session['user_id'] = user.id
-            return user.to_dict(), 200
+            user_data = user.to_dict()
+            user_data['userId'] = user.id  # Ensure the key matches what your frontend expects
+            return user_data, 200
+
+
         return {'error': 'Invalid credentials'}, 401
 
 
@@ -75,6 +93,28 @@ def logout():
     session.clear()
     return redirect(url_for('loginpage'))
 
+
+@app.route('/api/add-favorite', methods=['POST'])
+def add_favorite():
+    data = request.json
+    user_id = data['userId']
+    park_name = data['parkName']
+    park_location = data['parkLocation']
+    park = Park.query.filter_by(name=park_name).first()
+    if not park:
+        park = Park(name=park_name, location=park_location)
+        db.session.add(park)
+        db.session.commit()
+
+    # Check if already a favorite to avoid duplicates
+    existing_favorite = FavoritePark.query.filter_by(user_id=user_id, park_id=park.id).first()
+    if not existing_favorite:
+        favorite = FavoritePark(user_id=user_id, park_id=park.id)
+        db.session.add(favorite)
+        db.session.commit()
+        return jsonify({'message': 'Park added to favorites'}), 200
+    else:
+        return jsonify({'message': 'Park already in favorites'}), 409
 
 event_parser = reqparse.RequestParser()
 event_parser.add_argument('name', required=True, help="Name cannot be blank!")
@@ -131,6 +171,121 @@ class EventAPI(Resource):
         db.session.delete(event)
         db.session.commit()
         return {'message': 'Event deleted successfully'}, 200
+
+@app.route('/api/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = db.session.get(User, user_id)
+    if user:
+        return jsonify(user.to_dict()), 200
+    return jsonify({'error': 'User not found'}), 404
+
+@app.route('/api/users/<int:user_id>/preferences', methods=['POST'])
+def update_preferences(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    data = request.get_json()
+    preference_key = data.get('preference_key')
+    preference_value = data.get('preference_value')
+
+    # Check if the preference already exists and update it
+    preference = UserPreference.query.filter_by(
+        user_id=user_id, 
+        preference_key=preference_key
+    ).first()
+
+    if preference:
+        preference.preference_value = preference_value
+    else:
+        # If preference does not exist, create a new one
+        preference = UserPreference(
+            user_id=user_id, 
+            preference_key=preference_key, 
+            preference_value=preference_value
+        )
+        db.session.add(preference)
+
+    db.session.commit()
+    return jsonify({'message': 'Preferences updated successfully'}), 200
+
+
+@app.route('/api/users/<int:user_id>/preferences/zipcode', methods=['GET'])
+def get_user_zipcode_preference(user_id):
+    preference = UserPreference.query.filter_by(user_id=user_id, preference_key="preferred_zip_code").first()
+    if preference:
+        return jsonify({'preferred_zip_code': preference.preference_value}), 200
+    return jsonify({'error': 'Preference not found'}), 404
+
+@app.route('/api/users/<int:user_id>/favorited-parks', methods=['GET'])
+def get_favorited_parks(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    favorited_parks = FavoritePark.query.filter_by(user_id=user_id).all()
+    parks_data = [park.park.to_dict() for park in favorited_parks]  # Assuming Park model has a to_dict method
+    return jsonify(parks_data), 200
+
+@app.route('/api/users/<int:user_id>/favorited-parks/<int:park_id>', methods=['DELETE'])
+def remove_favorited_park(user_id, park_id):
+    favorite_park = FavoritePark.query.filter_by(user_id=user_id, park_id=park_id).first()
+    if not favorite_park:
+        return jsonify({'message': 'Favorite park not found'}), 404
+
+    db.session.delete(favorite_park)
+    db.session.commit()
+
+    return jsonify({'message': 'Favorited park removed successfully'}), 200
+
+@app.route('/api/users/<int:user_id>/locations', methods=['GET'])
+def get_user_locations(user_id):
+    locations = UserLocation.query.filter_by(user_id=user_id).all()
+    return jsonify([location.to_dict() for location in locations]), 200
+
+@app.route('/api/users/<int:user_id>/locations', methods=['POST'])
+def add_user_location(user_id):
+    data = request.get_json()
+    new_location = UserLocation(
+        user_id=user_id,
+        location_name=data.get('location_name'),
+        address=data.get('address'),
+        zip_code=data.get('zip_code')
+    )
+    db.session.add(new_location)
+    db.session.commit()
+    return jsonify(new_location.to_dict()), 201
+
+@app.route('/api/users/<int:user_id>/locations/<int:location_id>', methods=['DELETE'])
+def delete_user_location(user_id, location_id):
+    location = UserLocation.query.filter_by(user_id=user_id, id=location_id).first()
+    if location:
+        db.session.delete(location)
+        db.session.commit()
+        return jsonify({'message': 'Location deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Location not found'}), 404
+
+@app.route('/api/distance-matrix', methods=['POST'])
+def get_distance_matrix():
+    data = request.json
+    origins = data['origins']
+    destinations = data['destinations']
+    mode = data.get('mode', 'driving')
+    
+    parameters = {
+        'origins': '|'.join(origins),
+        'destinations': '|'.join(destinations),
+        'key': googleMapsApiKey,
+        'mode': mode,
+    }
+
+    response = requests.get('https://maps.googleapis.com/maps/api/distancematrix/json', params=parameters)
+
+    if response.status_code == 200:
+        return jsonify(response.json()), 200
+    else:
+        return jsonify({'error': 'Failed to fetch data from Google Distance Matrix API'}), response.status_code
 
 
 

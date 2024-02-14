@@ -1,18 +1,34 @@
-// src/components/Navbar.jsx
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; 
 import './Navbar.css';
 import logo from '../../../assets/Icon.png';
 
-
 function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
-  // Dummy handler for now
+  const [userId, setUserId] = useState(null);
+
+  // Check local storage to see if user is logged in
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    setIsLoggedIn(!!userId);
+    setUserId(userId);
+    
+  }, []);
+
   const handleSearch = (e) => {
     e.preventDefault();
     alert('Search functionality will be implemented soon!'); 
     setSearchQuery(''); 
+  };
+
+  const handleLogout = () => {
+    // Clear user session from local storage
+    localStorage.removeItem('userId');
+    setIsLoggedIn(false);
+    navigate('/'); // Redirect to home after logout
   };
 
   return (
@@ -28,15 +44,25 @@ function Navbar() {
         <li>
           <Link to="/EventsCalendar">Events</Link>
         </li>
-        <li>
-          <Link to="/LoginPage">Login</Link>
-        </li>
-        <li>
-          <Link to="/UserSignUp">Sign Up</Link>
-        </li>
-        <li>
-          <Link to="/AdminConsole">Admin Console</Link>
-        </li>
+        {isLoggedIn && (
+          <li>
+            <Link to={`/user-profile/${userId}`}>My Profile</Link>
+          </li>
+        )}
+        {isLoggedIn ? (
+          <li>
+            <button onClick={handleLogout} className="logout-button">Logout</button>
+          </li>
+        ) : (
+          <>
+            <li>
+              <Link to="/LoginPage">Login</Link>
+            </li>
+            <li>
+              <Link to="/UserSignUp">Sign Up</Link>
+            </li>
+          </>
+        )}
       </ul>
       <form onSubmit={handleSearch} className="navbar-search">
         <input

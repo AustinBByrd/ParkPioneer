@@ -7,6 +7,8 @@ import AdminConsole from './pages/AdminConsole';
 import ErrorPage from './pages/ErrorPage'; 
 import EventsCalendar from './pages/EventsCalendar'
 import Navbar from './components/Navbar'
+import UserProfile from './pages/UserProfile';
+import { UserProvider } from './contexts/UserContext';
 import './App.css';
 
 function App() {
@@ -14,6 +16,10 @@ function App() {
     {
       path: '/',
       element: <Home />,
+    },
+    {
+      path: '/user-profile/:userId', // Dynamic route with userId as a parameter
+      element: <UserProfile />,
     },
     {
       path: '/home',
@@ -42,10 +48,12 @@ function App() {
   ]);
 
   return (
+    <UserProvider>
     <>
       <RouterProvider router={router}>
       </RouterProvider>
     </>
+    </UserProvider>
   );
 }
 

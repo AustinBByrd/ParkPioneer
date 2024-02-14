@@ -24,20 +24,33 @@ ParkPioneer arose from a simple need within my friend circle - efficiently selec
 <img width="757" alt="image" src="https://github.com/AustinBByrd/ParkPioneer/blob/main/assets/schema.png">
 
 
-## API Routes
+## API Routes (Updated)
 
-| Route           | Method                | Description                       |
-|-----------------|-----------------------|-----------------------------------|
-| `/users`        | GET, POST             | Retrieve or create new users      |
-| `/users`        | PATCH, DELETE (Admin) | Update or delete users (Admin only) |
-| `/favorite-parks` | GET, POST           | Retrieve or add favorite parks    |
-| `/favorite-parks` | PATCH, DELETE       | Update or delete favorite parks   |
-| `/multi-houses`  | GET, POST            | Retrieve or add multiple houses   |
-| `/multi-houses`  | PATCH, DELETE        | Update or delete multiple houses  |
-| `/activity-log`  | GET, POST            | Retrieve or add to user activity log |
-| `/activity-log`  | DELETE               | Delete entries in user activity log |
-| `/events`        | GET, POST            | Retrieve or create events         |
-| `/events`        | PATCH, DELETE        | Update or delete events           |
+| Route                                        | Method      | Description                                 |
+|----------------------------------------------|-------------|---------------------------------------------|
+| `/api/users`                                 | GET, POST   | Retrieve or create new users                |
+| `/api/users/:id`                             | GET         | Retrieve a single user by ID                |
+| `/api/users/:id/preferences`                 | POST        | Update user preferences                     |
+| `/api/users/:id/preferences/zipcode`         | GET         | Retrieve user's preferred zip code          |
+| `/api/users/:id/favorited-parks`             | GET, POST   | Retrieve or add favorite parks for a user   |
+| `/api/users/:id/favorited-parks/:parkId`     | DELETE      | Remove a park from user's favorites         |
+| `/api/users/:id/locations`                   | GET, POST   | Retrieve or add locations for a user        |
+| `/api/users/:id/locations/:locationId`       | DELETE      | Delete a specific location for a user       |
+| `/api/add-favorite`                          | POST        | Add a park to favorites (pre-existing)      |
+| `/api/distance-matrix`                       | POST        | Get distance matrix from Google API         |
+| `/events`                                    | GET, POST   | Retrieve or create events (pre-existing)    |
+| `/events/:id`                                | PATCH, DELETE | Update or delete events (pre-existing)   |
+| `/logout`                                    | GET         | Log out and clear the session               |
+
+### New Additions:
+
+- **`/api/users/:id`**: Retrieve a single user by their ID.
+- **`/api/users/:id/preferences`**: Allows updating user preferences.
+- **`/api/users/:id/preferences/zipcode`**: Get a user's preferred zip code.
+- **`/api/users/:id/favorited-parks/:parkId`**: Endpoint to remove a favorited park by ID.
+- **`/api/users/:id/locations`**: Retrieve or add new locations for a user.
+- **`/api/users/:id/locations/:locationId`**: Allows deletion of a specific user location.
+- **`/api/distance-matrix`**: A new route to handle requests to the Google Distance Matrix API, providing distances and travel times between origins and destinations.
 
 
 ## Stretch Goals:

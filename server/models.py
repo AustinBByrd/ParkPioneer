@@ -2,6 +2,7 @@ from sqlalchemy.orm import validates
 from sqlalchemy.ext.hybrid import hybrid_property
 from config import db, bcrypt
 from sqlalchemy_serializer import SerializerMixin
+from flask_login import UserMixin
 
 
 class User(db.Model, SerializerMixin):
@@ -49,6 +50,16 @@ class Park(db.Model, SerializerMixin):
     # Relationship
     favorite_parks = db.relationship('FavoritePark', back_populates='park', lazy=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'location': self.location,
+            'description': self.description,
+            'amenities': self.amenities,
+            # Here too, be cautious with relationships to avoid recursion
+        }
+
 class FavoritePark(db.Model, SerializerMixin):
     __tablename__ = 'favorite_parks'
     id = db.Column(db.Integer, primary_key=True)
@@ -95,5 +106,35 @@ class UserEvent(db.Model, SerializerMixin):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
 
     event = db.relationship("Event", back_populates="user_events")
+
+
+class UserLocation(db.Model, SerializerMixin):
+    __tablename__ = 'user_locations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    location_name = db.Column(db.String(255), nullable=False)  # e.g., "Home", "Work"
+    address = db.Column(db.String(255), nullable=False)
+    zip_code = db.Column(db.String(10), nullable=True)
+
+    user = db.relationship("User", backref=db.backref('locations', lazy=True))
+
+    def to_dict(self):
+        # Custom method to serialize UserLocation to a dict
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'location_name': self.location_name,
+            'address': self.address,
+            'zip_code': self.zip_code
+        }
+
+class UserPreference(db.Model, SerializerMixin):
+    __tablename__ = 'user_preferences'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    preference_key = db.Column(db.String(255), nullable=False)
+    preference_value = db.Column(db.Text, nullable=False)
+
+    user = db.relationship('User', backref=db.backref('preferences', lazy=True))
 
     

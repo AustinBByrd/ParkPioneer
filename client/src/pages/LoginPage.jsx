@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar'; 
+import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
+import { useUserContext } from '../contexts/UserContext';
 
 function LoginPage() {
+  const { setUser } = useUserContext();
   const [formData, setFormData] = useState({
-    login: '', 
+    login: '',
     password: '',
   });
 
@@ -22,19 +24,35 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     try {
-      const response = await axios.post('http://localhost:5555/api/login', {
-        email: formData.login, 
-        password: formData.password,
-      });
+      const response = await axios.post('http://localhost:5555/api/login', formData);
       console.log('Login successful:', response.data);
-      navigate('/');
-      
-      setLoginError('');
+
+      // Set the user context with the returned user data
+      setUser({
+        id: response.data.userId,
+        // include other user data you might need
+      });
+
+      // Save the user ID in local storage or session storage
+      localStorage.setItem('userId', response.data.userId);
+
+      // Navigate to user profile page
+      navigate(`/user-profile/${response.data.userId}`);
     } catch (error) {
-      console.error('Login error:', error.response?.data?.error || 'An error occurred');
-      setLoginError(error.response?.data?.error || 'Login failed. Please try again.');
+      console.error('Login error:', error);
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          setLoginError('Incorrect email or password.');
+        } else if (error.response.status === 404) {
+          navigate('/UserSignUp');
+        } else {
+          setLoginError('An error occurred. Please try again.');
+        }
+      } else {
+        setLoginError('No response from the server. Please try again.');
+      }
     }
   };
 

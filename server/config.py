@@ -19,6 +19,7 @@ app = Flask(
 )
 
 app.secret_key = os.getenv('SECRET_KEY')
+app.GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SUPABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_NAME'] = 'id'
@@ -36,4 +37,4 @@ migrate = Migrate(app, db)
 db.init_app(app)
 bcrypt = Bcrypt(app)
 api = Api(app)
-CORS(app)
+CORS(app, supports_credentials=True)
