@@ -12,7 +12,6 @@ ParkPioneer arose from a simple need within my friend circle - efficiently selec
 - **Favoriting System**: Keep track of your favorite parks.
 - **Multiple Locations**: Add multiple 'home' locations for varied starting points.
 - **Comprehensive Park Listing**: A wide range of parks to choose from.
-- **Social Sharing**: Share your park choices with friends and family.
 - **Event Creation**: Organize and invite others to park events.
 
 
