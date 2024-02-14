@@ -18,7 +18,7 @@ function App() {
       element: <Home />,
     },
     {
-      path: '/user-profile/:userId', // Dynamic route with userId as a parameter
+      path: '/user-profile/:userId',
       element: <UserProfile />,
     },
     {

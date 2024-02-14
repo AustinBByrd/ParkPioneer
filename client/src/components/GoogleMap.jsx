@@ -41,18 +41,14 @@ function MyMapComponent() {
         const newMarkers = results.map((result) => ({
           lat: result.geometry.location.lat(),
           lng: result.geometry.location.lng(),
-          name: result.name, // Park name
+          name: result.name, 
           address: result.vicinity,
-          rating: result.rating, // Park address
-          placeId: result.place_id, // Unique identifier for the place
+          rating: result.rating,
+          placeId: result.place_id,
         }));
   
         setMarkers(newMarkers);
-  
-        // Log detailed park information
-        // results.forEach((result) => {
-        //   console.log(`Name: ${result.name}, Address: ${result.vicinity}, Place ID: ${result.place_id}, Rating: ${result.rating}`);
-        // });
+
       }
     });
   }, [isLoaded, center]);
@@ -82,9 +78,9 @@ function MyMapComponent() {
   const addParkToFavorites = async (park) => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
-      // If userId is not found in local storage, alert the user to log in
+   
       alert('Please log in to add parks to your favorites.');
-      return; // Exit the function early
+      return; 
     }
     
     try {
@@ -92,14 +88,14 @@ function MyMapComponent() {
         userId,
         parkName: park.name,
         parkLocation: park.address,
-        // You can add more park details as needed
+       
       });
       console.log('Park added to favorites:', response.data);
-      // Optionally, provide feedback to the user that the park was successfully added
+     
       alert('Park added to favorites successfully!');
     } catch (error) {
       console.error('Failed to add park to favorites:', error);
-      // Optionally, alert the user that there was a problem adding the park to favorites
+
       alert('Failed to add park to favorites. Please try again.');
     }
   };
@@ -125,7 +121,7 @@ function MyMapComponent() {
           <Marker 
             key={index} 
             position={{ lat: marker.lat, lng: marker.lng }} 
-            onClick={() => handleMarkerClick(marker)} // Attach onClick handler
+            onClick={() => handleMarkerClick(marker)} 
             visible={true} 
           />
         ))}
@@ -139,15 +135,15 @@ function MyMapComponent() {
               <p>Rating: {selectedPark.rating ? selectedPark.rating : "N/A"}</p>
               <p>Address: {selectedPark.address}</p>
               <button onClick={(e) => {
-                e.stopPropagation(); // Prevents the map from handling the click
+                e.stopPropagation(); 
                 addParkToFavorites(selectedPark);
               }}>Add to Favorites</button>
-              {/* Directions Link */}
+              
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPark.lat},${selectedPark.lng}`}
-                target="_blank" // Open in new tab
-                rel="noopener noreferrer" // Security measure for opening links in a new tab
-                style={{ display: 'block', marginTop: '10px' }} // Styling for the link
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{ display: 'block', marginTop: '10px' }}
               >
                 Get Directions
               </a>

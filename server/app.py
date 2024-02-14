@@ -60,7 +60,7 @@ class Login(Resource):
         if bcrypt.check_password_hash(user._password_hash, data['password']):
             session['user_id'] = user.id
             user_data = user.to_dict()
-            user_data['userId'] = user.id  # Ensure the key matches what your frontend expects
+            user_data['userId'] = user.id 
             return user_data, 200
 
 
@@ -189,7 +189,7 @@ def update_preferences(user_id):
     preference_key = data.get('preference_key')
     preference_value = data.get('preference_value')
 
-    # Check if the preference already exists and update it
+
     preference = UserPreference.query.filter_by(
         user_id=user_id, 
         preference_key=preference_key
@@ -198,7 +198,7 @@ def update_preferences(user_id):
     if preference:
         preference.preference_value = preference_value
     else:
-        # If preference does not exist, create a new one
+  
         preference = UserPreference(
             user_id=user_id, 
             preference_key=preference_key, 
@@ -224,7 +224,7 @@ def get_favorited_parks(user_id):
         return jsonify({'error': 'User not found'}), 404
     
     favorited_parks = FavoritePark.query.filter_by(user_id=user_id).all()
-    parks_data = [park.park.to_dict() for park in favorited_parks]  # Assuming Park model has a to_dict method
+    parks_data = [park.park.to_dict() for park in favorited_parks]  
     return jsonify(parks_data), 200
 
 @app.route('/api/users/<int:user_id>/favorited-parks/<int:park_id>', methods=['DELETE'])

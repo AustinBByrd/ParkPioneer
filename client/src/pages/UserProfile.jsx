@@ -2,19 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import { useUserContext } from '../contexts/UserContext'; 
+
 
 function UserProfile() {
   const [user, setUser] = useState(null);
   const [userZipCode, setUserZipCode] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [favoritedParks, setFavoritedParks] = useState([]);
-  const [userLocations, setUserLocations] = useState([]); // Added state for user locations
+  const [userLocations, setUserLocations] = useState([]); 
   const [selectedPark, setSelectedPark] = useState(null);
   const { userId } = useParams();
   const [newLocationName, setNewLocationName] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newZipCode, setNewZipCode] = useState('');
   const [showAddLocationForm, setShowAddLocationForm] = useState(false);
+  const { setDistanceMatrixData } = useUserContext();
 
 
   useEffect(() => {
@@ -81,6 +84,7 @@ function UserProfile() {
     }
   };
 
+
   const addLocation = async () => {
     try {
       const response = await axios.post(`http://localhost:5555/api/users/${userId}/locations`, {
@@ -88,8 +92,7 @@ function UserProfile() {
         address: newAddress,
         zip_code: newZipCode
       });
-      setUserLocations([...userLocations, response.data]); // Add the new location to the local state
-      // Clear form fields
+      setUserLocations([...userLocations, response.data]); 
       setNewLocationName('');
       setNewAddress('');
       setNewZipCode('');
@@ -105,13 +108,27 @@ function UserProfile() {
   const removeLocation = async (locationId) => {
     try {
       await axios.delete(`http://localhost:5555/api/users/${userId}/locations/${locationId}`);
-      // Filter out the removed location from the local state to update the UI
       setUserLocations(userLocations.filter(location => location.id !== locationId));
     } catch (error) {
       console.error('Error removing location:', error);
     }
   };
-  
+  const getDistanceMatrix = async () => {
+    const origins = userLocations.map(location => `${location.address}, ${location.zip_code}`);
+    const destinations = favoritedParks.map(park => park.location);
+
+    try {
+      const response = await axios.post('http://localhost:5555/api/distance-matrix', {
+        origins,
+        destinations,
+      });
+      setDistanceMatrixData(response.data);
+      setDistanceMatrixData(fetchedData);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching distance matrix:', error);
+    }
+  };
 
   return (
     <>
@@ -195,8 +212,10 @@ function UserProfile() {
             />
             <button onClick={addLocation}>Submit Location</button>
           </div>
+           
         )}
       </div>
+      <button onClick={getDistanceMatrix}>Get Distance Matrix</button>
     </>
     );
 }

@@ -10,7 +10,7 @@ function Navbar() {
 
   const [userId, setUserId] = useState(null);
 
-  // Check local storage to see if user is logged in
+  
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     setIsLoggedIn(!!userId);
@@ -25,10 +25,10 @@ function Navbar() {
   };
 
   const handleLogout = () => {
-    // Clear user session from local storage
+
     localStorage.removeItem('userId');
     setIsLoggedIn(false);
-    navigate('/'); // Redirect to home after logout
+    navigate('/'); 
   };
 
   return (
@@ -64,15 +64,7 @@ function Navbar() {
           </>
         )}
       </ul>
-      <form onSubmit={handleSearch} className="navbar-search">
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button type="submit">Search</button>
-      </form>
+     
     </nav>
   );
 }

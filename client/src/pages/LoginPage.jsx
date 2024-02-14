@@ -28,16 +28,14 @@ function LoginPage() {
       const response = await axios.post('http://localhost:5555/api/login', formData);
       console.log('Login successful:', response.data);
 
-      // Set the user context with the returned user data
+   
       setUser({
         id: response.data.userId,
-        // include other user data you might need
+
       });
 
-      // Save the user ID in local storage or session storage
       localStorage.setItem('userId', response.data.userId);
 
-      // Navigate to user profile page
       navigate(`/user-profile/${response.data.userId}`);
     } catch (error) {
       console.error('Login error:', error);

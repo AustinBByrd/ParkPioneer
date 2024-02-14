@@ -85,10 +85,9 @@ function SignUpForm() {
         {formErrors.password && <p style={{ color: 'red' }}>{formErrors.password}</p>}
       </div>
 
-      {/* Display success message */}
       {successMessage && <p style={{ color: 'green', textAlign: 'center' }}>{successMessage}</p>}
   
-      {/* Display server error message */}
+      
       {serverError && <p style={{ color: 'red', textAlign: 'center' }}>{serverError}</p>}
   
       <button type="submit" className="submit-btn">Sign Up</button>
