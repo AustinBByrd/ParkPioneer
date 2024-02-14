@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { useUserContext } from '../contexts/UserContext'; 
+import DistanceMatrixComponent from '../components/DistanceMatrix';
 
 
 function UserProfile() {
@@ -17,7 +18,9 @@ function UserProfile() {
   const [newAddress, setNewAddress] = useState('');
   const [newZipCode, setNewZipCode] = useState('');
   const [showAddLocationForm, setShowAddLocationForm] = useState(false);
-  const { setDistanceMatrixData } = useUserContext();
+  const { setDistanceMatrixData, setOriginNames } = useUserContext();
+  const [showDistanceMatrix, setShowDistanceMatrix] = useState(false);
+  
 
 
   useEffect(() => {
@@ -42,6 +45,7 @@ function UserProfile() {
         console.error('Error fetching user data:', error);
       }
     };
+    
 
     fetchUserDetailsAndLocations();
   }, [userId]);
@@ -116,15 +120,17 @@ function UserProfile() {
   const getDistanceMatrix = async () => {
     const origins = userLocations.map(location => `${location.address}, ${location.zip_code}`);
     const destinations = favoritedParks.map(park => park.location);
-
+  
     try {
       const response = await axios.post('http://localhost:5555/api/distance-matrix', {
         origins,
         destinations,
       });
+      const originNames = userLocations.map(location => location.location_name || 'Unknown Location');
+      setOriginNames(originNames); 
       setDistanceMatrixData(response.data);
-      setDistanceMatrixData(fetchedData);
       console.log(response.data);
+      setShowDistanceMatrix(true);
     } catch (error) {
       console.error('Error fetching distance matrix:', error);
     }
@@ -216,6 +222,7 @@ function UserProfile() {
         )}
       </div>
       <button onClick={getDistanceMatrix}>Get Distance Matrix</button>
+      {showDistanceMatrix && <DistanceMatrixComponent />}
     </>
     );
 }
