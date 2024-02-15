@@ -29,6 +29,34 @@ app.mail = mail
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+from flask import jsonify, request
+from models import Event, Park, db
+from sqlalchemy.exc import SQLAlchemyError
+
+@app.route('/api/events', methods=['POST'])
+def create_event():
+    data = request.json
+    try:
+        # Assume park_name is optional and could be empty.
+        park_name = data.get('park_name')
+        park = Park.query.filter_by(name=park_name).first() if park_name else None
+
+        new_event = Event(
+            name=data['name'],
+            description=data.get('description', ''),
+            start=dateutil_parser.parse(data['start']),
+            end=dateutil_parser.parse(data['end']),
+            park_id=park.id if park else None
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({'message': 'Event created successfully', 'event': new_event.id}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error', 'message': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': 'Unexpected error', 'message': str(e)}), 500
+
 class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
@@ -134,51 +162,51 @@ class EventAPI(Resource):
             event = Event.query.get(event_id)
             if not event:
                 return {'message': 'Event not found'}, 404
-            # Assuming event has a relationship to Park called 'park'
             return jsonify({
                 'id': event.id,
                 'name': event.name,
                 'description': event.description,
                 'start': event.start.isoformat(),
                 'end': event.end.isoformat(),
-                'park_name': event.park.name if event.park else None
+                'park_name': event.park.name if event.park else None  # Ensure this does not cause a lazy loading issue
             })
         else:
             events = Event.query.all()
-            simplified_events = [{
-                'id': event.id,
-                'name': event.name,
-                'description': event.description,
-                'start': event.start.isoformat(),
-                'end': event.end.isoformat(),
-                'park_name': event.park.name if event.park else None
-            } for event in events]
-            return jsonify(simplified_events)
+            return jsonify([
+                {
+                    'id': event.id,
+                    'name': event.name,
+                    'start': event.start.isoformat(),
+                    'end': event.end.isoformat(),
+                    'park_name': event.park.name if event.park else None  # Simplified
+                } for event in events
+            ])
 
 
-    def post(self):
-        args = event_parser.parse_args()
-        park_name = args['park_name']
+
+    # def post(self):
+    #     args = event_parser.parse_args()
+    #     park_name = args['park_name']
         
         
-        park = Park.query.filter_by(name=park_name).first()
+    #     park = Park.query.filter_by(name=park_name).first()
         
 
-        if not park:
-            park = Park(name=park_name)
-            db.session.add(park)
-            db.session.commit()
+    #     if not park:
+    #         park = Park(name=park_name)
+    #         db.session.add(park)
+    #         db.session.commit()
         
-        new_event = Event(
-            name=args['name'],
-            description=args.get('description', ''),
-            start=dateutil_parser.parse(args['start']),
-            end=dateutil_parser.parse(args['end']),
-            park_id=park.id
-        )
-        db.session.add(new_event)
-        db.session.commit()
-        return make_response(jsonify({'message': 'Event created successfully', 'event': new_event.to_dict()}), 201)
+    #     new_event = Event(
+    #         name=args['name'],
+    #         description=args.get('description', ''),
+    #         start=dateutil_parser.parse(args['start']),
+    #         end=dateutil_parser.parse(args['end']),
+    #         park_id=park.id
+    #     )
+    #     db.session.add(new_event)
+    #     db.session.commit()
+    #     return make_response(jsonify({'message': 'Event created successfully', 'event': new_event.to_dict()}), 201)
 
 
     def put(self, event_id):
