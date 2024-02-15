@@ -4,6 +4,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { useUserContext } from '../contexts/UserContext'; 
 import DistanceMatrixComponent from '../components/DistanceMatrix';
+import './UserProfile.css';
 
 
 function UserProfile() {
@@ -234,7 +235,7 @@ function UserProfile() {
            
         )}
       </div>
-      <button onClick={getDistanceMatrix} disabled={!dataLoaded}>Get Distance Matrix</button>
+      <button onClick={getDistanceMatrix} disabled={!dataLoaded} className="distance-matrix-button">Get Distance Matrix</button>
       {showDistanceMatrix && <DistanceMatrixComponent />}
     </>
     );

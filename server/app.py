@@ -121,7 +121,7 @@ event_parser.add_argument('name', required=True, help="Name cannot be blank!")
 event_parser.add_argument('description')
 event_parser.add_argument('start', required=True, help="Start date/time cannot be blank!")
 event_parser.add_argument('end', required=True, help="End date/time cannot be blank!")
-event_parser.add_argument('park_id', type=int, required=True, help="Park ID cannot be blank!")
+event_parser.add_argument('park_name', required=True, help="Park name cannot be blank!")
 
 # test
 class EventAPI(Resource):
@@ -137,12 +137,23 @@ class EventAPI(Resource):
 
     def post(self):
         args = event_parser.parse_args()
+        park_name = args['park_name']
+        
+        
+        park = Park.query.filter_by(name=park_name).first()
+        
+
+        if not park:
+            park = Park(name=park_name)
+            db.session.add(park)
+            db.session.commit()
+        
         new_event = Event(
             name=args['name'],
             description=args.get('description', ''),
             start=dateutil_parser.parse(args['start']),
             end=dateutil_parser.parse(args['end']),
-            park_id=args['park_id']
+            park_id=park.id
         )
         db.session.add(new_event)
         db.session.commit()
@@ -171,6 +182,12 @@ class EventAPI(Resource):
         db.session.delete(event)
         db.session.commit()
         return {'message': 'Event deleted successfully'}, 200
+
+
+@app.route('/api/parks', methods=['GET'])
+def get_parks():
+    parks = Park.query.all()
+    return jsonify([park.to_dict() for park in parks]), 200
 
 @app.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
