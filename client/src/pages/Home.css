@@ -1,0 +1,70 @@
+.home-container {
+    display: flex;
+    height: 100vh;
+    background-color: grey; /* Example blue background */
+}
+
+.sidebar {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.sidebar-button {
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+.main-content {
+    flex: 3;
+    padding: 20px;
+}
+
+.search-section {
+    display: flex;
+    justify-content: space-between;
+}
+
+.search-input {
+    padding: 10px;
+    margin-bottom: 20px;
+    width: calc(100% - 40px); /* Adjust width as necessary */
+}
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.description-box {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.content-boxes {
+    display: flex;
+    justify-content: space-between;
+}
+
+.content-box {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 20px;
+    margin-right: 20px;
+}
+
+/* Remove margin from the last content box */
+.content-box:last-child {
+    margin-right: 0;
+}
+
+/* Styles for the Navbar go here */
+
+/* Additional global styles can go here */
