@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import axios from 'axios';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
 
 const mapContainerStyle = {
-  height: "500px",
-  width: "800px",
+  height: "500px"
 };
 
 
@@ -102,57 +105,70 @@ function MyMapComponent() {
   
   
 
-    return (
-    <>
-      <input
-        type="text"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-        placeholder="Enter a location"
-      />
-      <button onClick={geocodeAddress}>Find Location</button>
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={center}
-        zoom={12}
-        onLoad={onMapLoad}
-      >
-        {markers.map((marker, index) => (
-          <Marker 
-            key={index} 
-            position={{ lat: marker.lat, lng: marker.lng }} 
-            onClick={() => handleMarkerClick(marker)} 
-            visible={true} 
+  return (
+    <Container fluid>
+      <Row className="justify-content-center">
+        <Col>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter a location"
+            className="form-control my-2" // Bootstrap class for styling
           />
-        ))}
-        {selectedPark && (
-          <InfoWindow
-            position={{ lat: selectedPark.lat, lng: selectedPark.lng }}
-            onCloseClick={() => setSelectedPark(null)}
-          >
-            <div style={{ color: 'black' }}>
-              <h2>{selectedPark.name}</h2>
-              <p>Rating: {selectedPark.rating ? selectedPark.rating : "N/A"}</p>
-              <p>Address: {selectedPark.address}</p>
-              <button onClick={(e) => {
-                e.stopPropagation(); 
-                addParkToFavorites(selectedPark);
-              }}>Add to Favorites</button>
-              
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPark.lat},${selectedPark.lng}`}
-                target="_blank" 
-                rel="noopener noreferrer" 
-                style={{ display: 'block', marginTop: '10px' }}
-              >
-                Get Directions
-              </a>
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-    </>
+          <button onClick={geocodeAddress} className="btn btn-primary my-2">Find Location</button>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <div className="map-container" style={{ position: 'relative', width: '100%', height: mapContainerStyle.height }}>
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '100%' }}
+              center={center}
+              zoom={12}
+              onLoad={onMapLoad}
+            >
+              {markers.map((marker, index) => (
+                <Marker 
+                  key={index} 
+                  position={{ lat: marker.lat, lng: marker.lng }} 
+                  onClick={() => handleMarkerClick(marker)} 
+                  visible={true} 
+                />
+              ))}
+              {selectedPark && (
+                <InfoWindow
+                  position={{ lat: selectedPark.lat, lng: selectedPark.lng }}
+                  onCloseClick={() => setSelectedPark(null)}
+                >
+                  <div style={{ color: 'black' }}>
+                    <h2>{selectedPark.name}</h2>
+                    <p>Rating: {selectedPark.rating ? selectedPark.rating : "N/A"}</p>
+                    <p>Address: {selectedPark.address}</p>
+                    <button onClick={(e) => {
+                      e.stopPropagation(); 
+                      addParkToFavorites(selectedPark);
+                    }}>Add to Favorites</button>
+                    
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPark.lat},${selectedPark.lng}`}
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ display: 'block', marginTop: '10px' }}
+                    >
+                      Get Directions
+                    </a>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
+          </div>
+        </Col>
+      </Row>
+    </Container>
   );
+  
 }
+
 
 export default MyMapComponent;
