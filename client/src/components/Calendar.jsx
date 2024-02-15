@@ -5,6 +5,7 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
+import Autocomplete from './Autocomplete'
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -17,12 +18,13 @@ function MyCalendar() {
     const [endDate, setEndDate] = useState(new Date());
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+    const [parks, setParks] = useState([]);
+    const [selectedPark, setSelectedPark] = useState({ name: '', id: null });
 
     useEffect(() => {
         const fetchEvents = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:5555/api/events');
-                // Assuming the backend returns an array of events
                 setEvents(response.data.map(event => ({
                     ...event,
                     start: new Date(event.start),
@@ -34,8 +36,23 @@ function MyCalendar() {
         };
 
         fetchEvents();
-    }, []);
 
+        const fetchParks = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:5555/api/parks');
+                setParks(response.data);
+            } catch (error) {
+                console.error('Error fetching parks:', error);
+            }
+        };
+
+        fetchParks();
+    }, []);
+        
+    const handleParkSelect = (park) => {
+        setSelectedPark({ name: park.name, id: park.id });
+    }; 
+    
 
     const onEventDrop = ({ event, start, end }) => {
         const idx = events.findIndex(evt => evt.id === event.id);
@@ -49,32 +66,37 @@ function MyCalendar() {
         setCurrentEvent({ start, end });
         setModalIsOpen(true);
     };
-
     const handleCreateEvent = async () => {
-        // Create Date objects from the selected date and time
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
+        startDateTime.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]));
+        endDateTime.setHours(parseInt(endTime.split(':')[0]), parseInt(endTime.split(':')[1]));
     
-        // Parse the time strings and set the hours and minutes
-        const [startHours, startMinutes] = startTime.split(':');
-        const [endHours, endMinutes] = endTime.split(':');
-        startDateTime.setHours(startHours, startMinutes);
-        endDateTime.setHours(endHours, endMinutes);
+        
+        if (!selectedPark.id) {
+            alert('Please select a valid park.');
+            return;
+        }
+    
+        
+        const postData = {
+            name: currentEvent.title, 
+            description: currentEvent.description, 
+            start: startDateTime.toISOString(),
+            end: endDateTime.toISOString(),
+            parkId: selectedPark.id, 
+            park_name: selectedPark.name, 
+        };
+    
+        console.log("Attempting to send data:", postData);
     
         try {
-            const postData = {
-                name: currentEvent.title,
-                description: currentEvent.description,
-                start: startDateTime.toISOString(),
-                end: endDateTime.toISOString(),
-                park_id: currentEvent.parkId,
-            };
             const response = await axios.post('http://127.0.0.1:5555/api/events', postData);
             const newEvent = {
                 ...currentEvent,
-                id: events.length, // This should ideally come from the response, not the length of the events array
+                id: response.data.event.id,
                 start: startDateTime,
-                end: endDateTime
+                end: endDateTime,
             };
             setEvents([...events, newEvent]);
             setModalIsOpen(false);
@@ -84,6 +106,8 @@ function MyCalendar() {
         }
     };
     
+    
+
     
     return (
         <>
@@ -101,47 +125,52 @@ function MyCalendar() {
                 <div style={{ position: 'fixed', top: '20%', left: '30%', backgroundColor: 'white', padding: 20, zIndex: 100 }}>
                     <h2>New Event</h2>
                     <input
-                        placeholder="Event Title"
-                        value={currentEvent.title}
+                        type="text"
+                        placeholder="Event Name"
+                        value={currentEvent.name}
                         onChange={(e) => setCurrentEvent({ ...currentEvent, title: e.target.value })}
+                        style={{ marginBottom: 10, width: "100%" }}
+                    />
+                    <Autocomplete
+                        suggestions={parks}
+                        onSelected={handleParkSelect}
                     />
                     <textarea
                         placeholder="Event Description"
                         value={currentEvent.description}
                         onChange={(e) => setCurrentEvent({ ...currentEvent, description: e.target.value })}
-                        style={{ marginTop: 10 }}
+                        style={{ marginTop: 10, width: "100%", minHeight: "100px" }}
                     />
-                    <input
-                        placeholder="Park ID"
-                        type="number" // Assuming Park ID is a number
-                        value={currentEvent.parkId || ''}
-                        onChange={(e) => setCurrentEvent({ ...currentEvent, parkId: e.target.value })}
-                        style={{ marginTop: 10 }}
-                    />
-                    <input
-                        type="date"
-                        value={moment(startDate).format('YYYY-MM-DD')}
-                        onChange={(e) => setStartDate(new Date(e.target.value))}
-                        style={{ marginTop: 10 }}
-                    />
-                    <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        style={{ marginTop: 10 }}
-                    />
-                    <input
-                        type="date"
-                        value={moment(endDate).format('YYYY-MM-DD')}
-                        onChange={(e) => setEndDate(new Date(e.target.value))}
-                        style={{ marginTop: 10 }}
-                    />
-                    <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        style={{ marginTop: 10 }}
-                    />
+                    <div style={{ marginTop: 10 }}>
+                        Start Date and Time:
+                        <input
+                            type="date"
+                            value={moment(startDate).format('YYYY-MM-DD')}
+                            onChange={(e) => setStartDate(new Date(e.target.value))}
+                            style={{ marginLeft: 10 }}
+                        />
+                        <input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            style={{ marginLeft: 10 }}
+                        />
+                    </div>
+                    <div style={{ marginTop: 10 }}>
+                        End Date and Time:
+                        <input
+                            type="date"
+                            value={moment(endDate).format('YYYY-MM-DD')}
+                            onChange={(e) => setEndDate(new Date(e.target.value))}
+                            style={{ marginLeft: 10 }}
+                        />
+                        <input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            style={{ marginLeft: 10 }}
+                        />
+                    </div>
                     <button onClick={handleCreateEvent} style={{ marginTop: 10 }}>Create Event</button>
                     <button onClick={() => setModalIsOpen(false)} style={{ marginTop: 10 }}>Cancel</button>
                 </div>

@@ -20,34 +20,36 @@ function UserProfile() {
   const [showAddLocationForm, setShowAddLocationForm] = useState(false);
   const { setDistanceMatrixData, setOriginNames } = useUserContext();
   const [showDistanceMatrix, setShowDistanceMatrix] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   
 
 
   useEffect(() => {
-    const fetchUserDetailsAndLocations = async () => {
+    const fetchData = async () => {
+      setDataLoaded(false); 
       try {
+     
         const userDetailsResponse = await axios.get(`http://localhost:5555/api/users/${userId}`);
-        console.log('User details response:', userDetailsResponse.data);
         setUser(userDetailsResponse.data);
 
         const prefResponse = await axios.get(`http://localhost:5555/api/users/${userId}/preferences/zipcode`);
-        console.log('User zip code preference response:', prefResponse.data);
         setUserZipCode(prefResponse.data.preferred_zip_code || '');
 
         const parksResponse = await axios.get(`http://localhost:5555/api/users/${userId}/favorited-parks`);
-        console.log('Favorited parks response:', parksResponse.data);
         setFavoritedParks(parksResponse.data);
 
         const locationsResponse = await axios.get(`http://localhost:5555/api/users/${userId}/locations`);
-        console.log('User locations response:', locationsResponse.data);
         setUserLocations(locationsResponse.data);
+
+        setDataLoaded(true);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        setDataLoaded(false); 
       }
     };
-    
 
-    fetchUserDetailsAndLocations();
+    fetchData();
   }, [userId]);
 
   const handleEdit = () => {
@@ -81,7 +83,7 @@ function UserProfile() {
   const removeParkFromFavorites = async (parkId) => {
     try {
       await axios.delete(`http://localhost:5555/api/users/${userId}/favorited-parks/${parkId}`);
-      // Update local state to reflect the change
+      
       setFavoritedParks(favoritedParks.filter(park => park.id !== parkId));
     } catch (error) {
       console.error('Error removing park from favorites:', error);
@@ -117,6 +119,11 @@ function UserProfile() {
       console.error('Error removing location:', error);
     }
   };
+
+  const toggleLocationDetails = (locationId) => {
+    setSelectedLocation(selectedLocation === locationId ? null : locationId);
+  };
+
   const getDistanceMatrix = async () => {
     const origins = userLocations.map(location => `${location.address}, ${location.zip_code}`);
     const destinations = favoritedParks.map(park => park.location);
@@ -180,16 +187,22 @@ function UserProfile() {
                   <p>No favorited parks found.</p>
                 )}
         <h3>User Locations</h3>
-            {userLocations.length > 0 ? (
-              userLocations.map((location) => (
-                <div key={location.id}>
-                  <p><strong>{location.location_name}:</strong> {location.address} ({location.zip_code})</p>
+        {userLocations.length > 0 ? (
+          userLocations.map((location) => (
+            <div key={location.id}>
+              <span onClick={() => toggleLocationDetails(location.id)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+                {location.location_name}: {location.address} ({location.zip_code})
+              </span>
+              {selectedLocation === location.id && (
+                <div>
                   <button onClick={() => removeLocation(location.id)}>Remove</button>
                 </div>
-              ))
-            ) : (
-              <p>No locations set.</p>
-            )}
+              )}
+            </div>
+          ))
+        ) : (
+          <p>No locations set.</p>
+        )}
 
         <button onClick={toggleAddLocationForm}>
           {showAddLocationForm ? 'Cancel Adding Location' : 'Add New Location'}
@@ -221,7 +234,7 @@ function UserProfile() {
            
         )}
       </div>
-      <button onClick={getDistanceMatrix}>Get Distance Matrix</button>
+      <button onClick={getDistanceMatrix} disabled={!dataLoaded}>Get Distance Matrix</button>
       {showDistanceMatrix && <DistanceMatrixComponent />}
     </>
     );
