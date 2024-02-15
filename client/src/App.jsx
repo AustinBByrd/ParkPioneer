@@ -12,6 +12,7 @@ import { UserProvider } from './contexts/UserContext';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
 function App() {
   const router = createBrowserRouter([
     {

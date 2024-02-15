@@ -4,6 +4,7 @@ import { Container, Navbar, Nav, Button } from 'react-bootstrap';
 import logo from '../../../assets/Icon.png';
 import './Navbar.css'; // Import your custom CSS if needed
 
+
 function CustomNavbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);

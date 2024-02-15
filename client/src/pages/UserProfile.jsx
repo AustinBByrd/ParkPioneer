@@ -236,7 +236,7 @@ function UserProfile() {
         )}
       </div>
       <button onClick={getDistanceMatrix} disabled={!dataLoaded} className="distance-matrix-button">Get Distance Matrix</button>
-      {showDistanceMatrix && <DistanceMatrixComponent />}
+      {showDistanceMatrix && <DistanceMatrixComponent favoritedParks={favoritedParks} />}
     </>
     );
 }

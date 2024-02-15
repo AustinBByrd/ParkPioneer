@@ -10,7 +10,7 @@ function EventsCalendar() {
   return (
     <>
     <Navbar />
-      <div>Events</div>
+      <div>Events Calendar</div>
       <MyCalendar />
     </>
   );

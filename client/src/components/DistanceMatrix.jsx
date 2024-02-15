@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GoogleMap, Marker, InfoWindow, useLoadScript } from '@react-google-maps/api';
 import { useUserContext } from '../contexts/UserContext';
-import axios from 'axios'; // Assuming axios for API requests
+import axios from 'axios';
 
 const mapContainerStyle = {
   height: "400px",
@@ -10,16 +10,17 @@ const mapContainerStyle = {
 
 const libraries = ["places"];
 
-function DistanceMatrixComponent() {
+function DistanceMatrixComponent({ favoritedParks }) {
     const { distanceMatrixData, originNames } = useUserContext();
     const [destinationMarkers, setDestinationMarkers] = useState([]);
     const [selectedDestination, setSelectedDestination] = useState(null);
+    console.log('favoritedParks:', favoritedParks);
 
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY, 
+        googleMapsApiKey: import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY,
         libraries,
     });
-    
+
     const metersToMiles = (meters) => (meters / 1609.344).toFixed(2);
 
     // Function to geocode addresses
@@ -30,26 +31,46 @@ function DistanceMatrixComponent() {
                 key: import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY,
             },
         });
-        return response.data.results[0].geometry.location; 
+        return response.data.results[0].geometry.location;
     };
 
     useEffect(() => {
         if (!isLoaded || !distanceMatrixData) return;
 
+        const validDestinations = distanceMatrixData.destination_addresses.filter(address => address.trim() !== "");
+    
         const geocodeAllDestinations = async () => {
             const geocodedDestinations = await Promise.all(
-                distanceMatrixData.destination_addresses.map(address => geocodeAddress(address))
+                validDestinations.map(address => geocodeAddress(address))
             );
-
-            setDestinationMarkers(geocodedDestinations.map((loc, index) => ({
-                lat: loc.lat,
-                lng: loc.lng,
-                index: index, 
-            })));
+        
+            setDestinationMarkers(geocodedDestinations.map((loc, index) => {
+                const currentAddress = validDestinations[index].toLowerCase(); // Normalize to lower case for comparison
+                console.log(`Geocoded Address: ${currentAddress}`);
+        
+                const parkMatch = favoritedParks.find(park => {
+                    const parkAddressNormalized = park.location.toLowerCase(); // Normalize to lower case
+                    // Check for partial match
+                    return currentAddress.includes(parkAddressNormalized) || parkAddressNormalized.includes(currentAddress);
+                });
+        
+                const parkName = parkMatch ? parkMatch.name : `Park ${index + 1}`;
+                console.log(`Matched Park Name: ${parkName}`);
+        
+                return {
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    name: parkName, // Include matched or default park name
+                    index: index,
+                };
+            }));
         };
+        
+
+        
 
         geocodeAllDestinations();
-    }, [isLoaded, distanceMatrixData]);
+    }, [isLoaded, distanceMatrixData, favoritedParks]);
 
     const handleMarkerClick = (index) => {
         setSelectedDestination(index);
@@ -62,7 +83,7 @@ function DistanceMatrixComponent() {
         <GoogleMap
             mapContainerStyle={mapContainerStyle}
             zoom={10}
-            center={destinationMarkers[0] || { lat: -34.397, lng: 150.644 }} 
+            center={destinationMarkers[0] || { lat: -34.397, lng: 150.644 }}
         >
             {destinationMarkers.map((marker, index) => (
                 <Marker
@@ -74,11 +95,11 @@ function DistanceMatrixComponent() {
 
             {selectedDestination !== null && (
                 <InfoWindow
-                    position={destinationMarkers[selectedDestination]}
+                    position={{ lat: destinationMarkers[selectedDestination].lat, lng: destinationMarkers[selectedDestination].lng }}
                     onCloseClick={() => setSelectedDestination(null)}
                 >
-                    <div style={{ color: 'black' }}>
-                        <h2>Distance and Duration</h2>
+                    <div>
+                        <h2>{destinationMarkers[selectedDestination].name}</h2>
                         {distanceMatrixData.rows.map((row, idx) => {
                             const { distance, duration } = row.elements[selectedDestination];
                             return (

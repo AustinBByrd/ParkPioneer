@@ -6,85 +6,53 @@ import { useUserContext } from '../contexts/UserContext';
 
 function LoginPage() {
   const { setUser } = useUserContext();
-  const [formData, setFormData] = useState({
-    login: '',
-    password: '',
-  });
-
+  const [formData, setFormData] = useState({ login: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+    setFormData(prevFormData => ({ ...prevFormData, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const response = await axios.post('http://localhost:5555/api/login', formData);
-      console.log('Login successful:', response.data);
-
-   
-      setUser({
-        id: response.data.userId,
-
-      });
-
+      setUser({ id: response.data.userId });
       localStorage.setItem('userId', response.data.userId);
-
       navigate(`/user-profile/${response.data.userId}`);
     } catch (error) {
-      console.error('Login error:', error);
-
-      if (error.response) {
-        if (error.response.status === 401) {
-          setLoginError('Incorrect email or password.');
-        } else if (error.response.status === 404) {
-          navigate('/UserSignUp');
-        } else {
-          setLoginError('An error occurred. Please try again.');
-        }
-      } else {
-        setLoginError('No response from the server. Please try again.');
-      }
+      const message = error.response ? error.response.data.error : 'No response from the server. Please try again.';
+      setLoginError(message);
     }
   };
 
   return (
     <>
       <Navbar />
-      <div className="login-container" style={{ maxWidth: '300px', margin: 'auto', marginTop: '20px' }}>
-        <h2>Login</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="login">Username or Email</label>
-            <input
-              type="text"
-              id="login"
-              name="login"
-              value={formData.login}
-              onChange={handleChange}
-              required
-            />
+      <div className="container mt-5">
+        <div className="row justify-content-center">
+          <div className="col-md-6">
+            <div className="card">
+              <div className="card-body">
+                <h2 className="card-title text-center">Login</h2>
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label htmlFor="login">Username or Email</label>
+                    <input type="text" id="login" name="login" className="form-control" value={formData.login} onChange={handleChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input type="password" id="password" name="password" className="form-control" value={formData.password} onChange={handleChange} required />
+                  </div>
+                  {loginError && <div className="alert alert-danger mt-2">{loginError}</div>}
+                  <button type="submit" className="btn btn-primary mt-3 w-100">Login</button>
+                </form>
+              </div>
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          {loginError && <div style={{ color: 'red', marginTop: '10px' }}>{loginError}</div>}
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>Login</button>
-        </form>
+        </div>
       </div>
     </>
   );
