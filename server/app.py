@@ -170,10 +170,9 @@ class EventAPI(Resource):
         event.start = dateutil_parser.parse(args['start'])
         event.end = dateutil_parser.parse(args['end'])
         event.park_id = args['park_id']
+
         db.session.commit()
         return make_response(jsonify({'message': 'Event updated successfully', 'event': event.to_dict()}), 200)
-
-
 
     def delete(self, event_id):
         event = Event.query.get(event_id)
@@ -182,6 +181,21 @@ class EventAPI(Resource):
         db.session.delete(event)
         db.session.commit()
         return {'message': 'Event deleted successfully'}, 200
+    
+    def patch(self, event_id):
+        args = event_parser.parse_args()
+        event = Event.query.get(event_id)
+        if not event:
+            return {'message': 'Event not found'}, 404
+        
+        # Update event with new details
+        event.name = args['name']
+        event.description = args.get('description', event.description)
+        event.start = dateutil_parser.parse(args['start'])
+        event.end = dateutil_parser.parse(args['end'])
+        db.session.commit()
+
+        return {'message': 'Event updated successfully', 'event': event.to_dict()}, 200
 
 
 @app.route('/api/parks', methods=['GET'])

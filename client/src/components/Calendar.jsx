@@ -3,9 +3,12 @@ import axios from 'axios';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
+import { Modal, Button, Form, Container, Row, Col } from 'react-bootstrap';
+import Autocomplete from './Autocomplete';
+
+
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
-import Autocomplete from './Autocomplete'
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -25,16 +28,18 @@ function MyCalendar() {
         const fetchEvents = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:5555/api/events');
-                setEvents(response.data.map(event => ({
+                const fetchedEvents = response.data.map(event => ({
                     ...event,
+                    title: event.name, // Assuming 'name' is the field from your backend
                     start: new Date(event.start),
                     end: new Date(event.end)
-                })));
+                }));
+                setEvents(fetchedEvents);
             } catch (error) {
                 console.error('Error fetching events:', error);
             }
         };
-
+    
         fetchEvents();
 
         const fetchParks = async () => {
@@ -52,20 +57,46 @@ function MyCalendar() {
     const handleParkSelect = (park) => {
         setSelectedPark({ name: park.name, id: park.id });
     }; 
-    
 
-    const onEventDrop = ({ event, start, end }) => {
-        const idx = events.findIndex(evt => evt.id === event.id);
+    const onEventDrop = async ({ event, start, end }) => {
         const updatedEvent = { ...event, start, end };
-        const updatedEvents = [...events];
-        updatedEvents.splice(idx, 1, updatedEvent);
-        setEvents(updatedEvents);
-    };
+      
+        try {
+          const response = await axios.patch(`http://127.0.0.1:5555/api/events/${event.id}`, {
+            
+            start: start.toISOString(),
+            end: end.toISOString(),
+          });
+          if (response.status === 200) {
+            const updatedEvents = events.map(evt => evt.id === event.id ? updatedEvent : evt);
+            setEvents(updatedEvents);
+            alert('Event updated successfully');
+          }
+        } catch (error) {
+            console.error('Error updating event:', error);
+            console.log(error.response); // This will give you more insight into the error
+            alert('Failed to update the event');
+        }
+      };
 
-    const onSelectSlot = ({ start, end }) => {
-        setCurrentEvent({ start, end });
+      const onSelectSlot = ({ start, end }) => {
+        // Adjust the end date for display if needed
+        const adjustedEnd = new Date(end);
+        adjustedEnd.setDate(adjustedEnd.getDate() - 1);
+    
+        // Update the state with the adjusted dates
+        setCurrentEvent({ ...currentEvent, start, end: adjustedEnd });
+        setStartDate(start);
+        setEndDate(adjustedEnd);
         setModalIsOpen(true);
     };
+    
+
+    const onEventResize = async ({ event, start, end }) => {
+        // This can call the same function as onEventDrop since the operation is similar
+        onEventDrop({ event, start, end });
+      };
+      
     const handleCreateEvent = async () => {
         const startDateTime = new Date(startDate);
         const endDateTime = new Date(endDate);
@@ -108,73 +139,99 @@ function MyCalendar() {
     
     
 
-    
     return (
         <>
-            <DnDCalendar
-                selectable
-                localizer={localizer}
-                events={events}
-                onEventDrop={onEventDrop}
-                onEventResize={({ event, start, end }) => onEventDrop({ event, start, end })}
-                onSelectSlot={onSelectSlot}
-                style={{ height: 500 }}
-                resizable
-            />
-            {modalIsOpen && (
-                <div style={{ position: 'fixed', top: '20%', left: '30%', backgroundColor: 'white', padding: 20, zIndex: 100 }}>
-                    <h2>New Event</h2>
-                    <input
+            <Container fluid>
+                <DnDCalendar
+                    selectable
+                    localizer={localizer}
+                    events={events.map(event => ({
+                        ...event,
+                        start: new Date(event.start),
+                        end: new Date(event.end)
+                    }))}
+                    onEventDrop={onEventDrop}
+                    onEventResize={onEventResize}
+                    onSelectSlot={onSelectSlot}
+                    style={{ height: 500, marginTop: '1rem' }}
+                    resizable
+                />
+            </Container>
+            <Modal show={modalIsOpen} onHide={() => setModalIsOpen(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>New Event</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Event Name</Form.Label>
+                        <Form.Control
                         type="text"
-                        placeholder="Event Name"
-                        value={currentEvent.name}
+                        placeholder="Enter event name"
+                        value={currentEvent.title}
                         onChange={(e) => setCurrentEvent({ ...currentEvent, title: e.target.value })}
-                        style={{ marginBottom: 10, width: "100%" }}
-                    />
+                        />
+                    </Form.Group>
+
                     <Autocomplete
                         suggestions={parks}
-                        onSelected={handleParkSelect}
+                        onSelected={(selectedPark) => setSelectedPark(selectedPark)}
                     />
-                    <textarea
-                        placeholder="Event Description"
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>Description</Form.Label>
+                        <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder="Event description"
                         value={currentEvent.description}
                         onChange={(e) => setCurrentEvent({ ...currentEvent, description: e.target.value })}
-                        style={{ marginTop: 10, width: "100%", minHeight: "100px" }}
-                    />
-                    <div style={{ marginTop: 10 }}>
-                        Start Date and Time:
-                        <input
+                        />
+                    </Form.Group>
+
+                    <Row>
+                        <Col>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Start Date and Time</Form.Label>
+                            <Form.Control
                             type="date"
                             value={moment(startDate).format('YYYY-MM-DD')}
                             onChange={(e) => setStartDate(new Date(e.target.value))}
-                            style={{ marginLeft: 10 }}
-                        />
-                        <input
+                            />
+                            <Form.Control
                             type="time"
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            style={{ marginLeft: 10 }}
-                        />
-                    </div>
-                    <div style={{ marginTop: 10 }}>
-                        End Date and Time:
-                        <input
+                            />
+                        </Form.Group>
+                        </Col>
+                        <Col>
+                        <Form.Group className="mb-3">
+                            <Form.Label>End Date and Time</Form.Label>
+                            <Form.Control
                             type="date"
                             value={moment(endDate).format('YYYY-MM-DD')}
                             onChange={(e) => setEndDate(new Date(e.target.value))}
-                            style={{ marginLeft: 10 }}
-                        />
-                        <input
+                            />
+                            <Form.Control
                             type="time"
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
-                            style={{ marginLeft: 10 }}
-                        />
-                    </div>
-                    <button onClick={handleCreateEvent} style={{ marginTop: 10 }}>Create Event</button>
-                    <button onClick={() => setModalIsOpen(false)} style={{ marginTop: 10 }}>Cancel</button>
-                </div>
-            )}
+                            />
+                        </Form.Group>
+                        </Col>
+                    </Row>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setModalIsOpen(false)}>
+                    Close
+                    </Button>
+                    <Button variant="primary" onClick={handleCreateEvent}>
+                    Save Changes
+                    </Button>
+                </Modal.Footer>
+                </Modal>
         </>
     );
 }
