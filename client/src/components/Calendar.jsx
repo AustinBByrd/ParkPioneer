@@ -60,9 +60,9 @@ useEffect(() => {
                     title: event.name,
                     start: new Date(event.start),
                     end: new Date(event.end),
-                    parkName: parksMap[event.park_id] // Add park name to each event
+                    parkName: parksMap[event.parkId] // Add park name to each event
                 }));
-                console.log(fetchedEvents)
+                // console.log(fetchedEvents)
                 setEvents(fetchedEvents);
                 setParks(parksResponse.data);
             } catch (error) {

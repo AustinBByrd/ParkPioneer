@@ -359,10 +359,23 @@ def get_distance_matrix():
 @app.route('/api/events/signup', methods=['POST'])
 def event_signup():
     data = request.json
-    user_id = data['user_Id']
-    event_id = data['event_id']
-    # Logic to add user to event
-    return jsonify({'message': 'Signed up successfully'}), 200
+    user_id = data['userId']  # Ensure this matches the JSON key sent from the client
+    event_id = data['eventId']  # Ensure this matches the JSON key sent from the client
+
+    # Check if the user is already signed up for the event to prevent duplicates
+    existing_signup = UserEvent.query.filter_by(user_id=user_id, event_id=event_id).first()
+    if existing_signup:
+        return jsonify({'message': 'User already signed up for this event'}), 409
+
+    try:
+        new_user_event = UserEvent(user_id=user_id, event_id=event_id)
+        db.session.add(new_user_event)
+        db.session.commit()
+        return jsonify({'message': 'Signed up successfully'}), 200
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of error
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/events/invite', methods=['POST'])
 def event_invite():
