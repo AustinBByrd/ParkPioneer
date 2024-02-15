@@ -25,31 +25,27 @@ ParkPioneer arose from a simple need within my friend circle - efficiently selec
 
 ## API Routes (Updated)
 
-| Route                                        | Method      | Description                                 |
-|----------------------------------------------|-------------|---------------------------------------------|
-| `/api/users`                                 | GET, POST   | Retrieve or create new users                |
-| `/api/users/:id`                             | GET         | Retrieve a single user by ID                |
-| `/api/users/:id/preferences`                 | POST        | Update user preferences                     |
-| `/api/users/:id/preferences/zipcode`         | GET         | Retrieve user's preferred zip code          |
-| `/api/users/:id/favorited-parks`             | GET, POST   | Retrieve or add favorite parks for a user   |
-| `/api/users/:id/favorited-parks/:parkId`     | DELETE      | Remove a park from user's favorites         |
-| `/api/users/:id/locations`                   | GET, POST   | Retrieve or add locations for a user        |
-| `/api/users/:id/locations/:locationId`       | DELETE      | Delete a specific location for a user       |
-| `/api/add-favorite`                          | POST        | Add a park to favorites (pre-existing)      |
-| `/api/distance-matrix`                       | POST        | Get distance matrix from Google API         |
-| `/events`                                    | GET, POST   | Retrieve or create events (pre-existing)    |
-| `/events/:id`                                | PATCH, DELETE | Update or delete events (pre-existing)   |
-| `/logout`                                    | GET         | Log out and clear the session               |
+| Route                                        | Method           | Description                                 |
+|----------------------------------------------|------------------|---------------------------------------------|
+| `/api/users`                                 | GET, POST        | Retrieve or create new users                |
+| `/api/users/:id`                             | GET              | Retrieve a single user by ID                |
+| `/api/users/:id/preferences`                 | POST             | Update user preferences                     |
+| `/api/users/:id/preferences/zipcode`         | GET              | Retrieve user's preferred zip code          |
+| `/api/users/:id/favorited-parks`             | GET, POST        | Retrieve or add favorite parks for a user   |
+| `/api/users/:id/favorited-parks/:parkId`     | DELETE           | Remove a park from user's favorites         |
+| `/api/users/:id/locations`                   | GET, POST        | Retrieve or add locations for a user        |
+| `/api/users/:id/locations/:locationId`       | DELETE           | Delete a specific location for a user       |
+| `/api/add-favorite`                          | POST             | Add a park to favorites (pre-existing)      |
+| `/api/distance-matrix`                       | POST             | Get distance matrix from Google API         |
+| `/api/events`                                | GET, POST        | Retrieve or create events                   |
+| `/api/events/:id`                            | PATCH, DELETE    | Update or delete events                     |
+| `/api/events/update/:id`                     | PATCH            | Update event details                        |
+| `/logout`                                    | GET              | Log out and clear the session               |
 
 ### New Additions:
 
-- **`/api/users/:id`**: Retrieve a single user by their ID.
-- **`/api/users/:id/preferences`**: Allows updating user preferences.
-- **`/api/users/:id/preferences/zipcode`**: Get a user's preferred zip code.
-- **`/api/users/:id/favorited-parks/:parkId`**: Endpoint to remove a favorited park by ID.
-- **`/api/users/:id/locations`**: Retrieve or add new locations for a user.
-- **`/api/users/:id/locations/:locationId`**: Allows deletion of a specific user location.
-- **`/api/distance-matrix`**: A new route to handle requests to the Google Distance Matrix API, providing distances and travel times between origins and destinations.
+- **`/api/events/update/:id`**: Endpoint for updating event details using the PATCH method.
+
 
 
 ```markdown
