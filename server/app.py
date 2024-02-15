@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 from dateutil import parser as dateutil_parser
 import re
+from flask_mail import Mail
 
 from flask import Flask, request, session, jsonify, send_from_directory, make_response
 from flask_restful import Resource, Api, reqparse
@@ -15,11 +16,14 @@ import requests
 
 from config import app, db, api
 from models import User, Park, FavoritePark, House, UserActivityLog, Event, UserEvent, UserPreference, UserLocation
+from email_utils import send_email
 
 login_manager = LoginManager(app)
 bcrypt = Bcrypt(app)
 CORS(app)
 googleMapsApiKey = os.getenv('GOOGLE_MAPS_API_KEY')
+mail = Mail(app)
+app.mail = mail 
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -130,10 +134,27 @@ class EventAPI(Resource):
             event = Event.query.get(event_id)
             if not event:
                 return {'message': 'Event not found'}, 404
-            return jsonify(event.to_dict())
+            # Assuming event has a relationship to Park called 'park'
+            return jsonify({
+                'id': event.id,
+                'name': event.name,
+                'description': event.description,
+                'start': event.start.isoformat(),
+                'end': event.end.isoformat(),
+                'park_name': event.park.name if event.park else None
+            })
         else:
             events = Event.query.all()
-            return jsonify([event.to_dict() for event in events])
+            simplified_events = [{
+                'id': event.id,
+                'name': event.name,
+                'description': event.description,
+                'start': event.start.isoformat(),
+                'end': event.end.isoformat(),
+                'park_name': event.park.name if event.park else None
+            } for event in events]
+            return jsonify(simplified_events)
+
 
     def post(self):
         args = event_parser.parse_args()
@@ -202,6 +223,23 @@ class EventAPI(Resource):
 def get_parks():
     parks = Park.query.all()
     return jsonify([park.to_dict() for park in parks]), 200
+
+@app.route('/api/parks', methods=['POST'])
+def create_park():
+    data = request.json
+    park_name = data.get('name')
+
+    # Check if a park with the given name already exists
+    existing_park = Park.query.filter_by(name=park_name).first()
+    if existing_park:
+        return jsonify({'error': 'Park with this name already exists'}), 409
+
+    # Create a new park
+    new_park = Park(name=park_name)
+    db.session.add(new_park)
+    db.session.commit()
+
+    return jsonify({'message': 'Park created successfully', 'park': new_park.to_dict()}), 201
 
 @app.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
@@ -317,6 +355,33 @@ def get_distance_matrix():
         return jsonify(response.json()), 200
     else:
         return jsonify({'error': 'Failed to fetch data from Google Distance Matrix API'}), response.status_code
+    
+@app.route('/api/events/signup', methods=['POST'])
+def event_signup():
+    data = request.json
+    user_id = data['user_Id']
+    event_id = data['event_id']
+    # Logic to add user to event
+    return jsonify({'message': 'Signed up successfully'}), 200
+
+@app.route('/api/events/invite', methods=['POST'])
+def event_invite():
+    data = request.json
+    event_id = data['eventId']
+    email = data['email']
+    # Assuming you have a send_email function defined that sends the email
+    try:
+        send_email(
+            'Park Pioneer Event Invitation',
+            [email],
+            'You have been invited to a Park Pioneer event!'
+        )
+        return jsonify({'message': 'Invitation sent successfully'}), 200
+    except Exception as e:
+        # Log the exception and return a failure message
+        print(e)  # or use a proper logging mechanism
+        return jsonify({'error': 'Failed to send invitation'}), 500
+
 
 
 

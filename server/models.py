@@ -97,8 +97,12 @@ class Event(db.Model, SerializerMixin):
     start = db.Column(db.DateTime)
     end = db.Column(db.DateTime)
 
-    # Relationship
+    # Add a relationship to Park
+    park = db.relationship("Park", backref="events")
+
+    # Existing relationship with UserEvent
     user_events = db.relationship('UserEvent', back_populates='event', lazy=True)
+
 
 class UserEvent(db.Model, SerializerMixin):
     __tablename__ = 'user_events'

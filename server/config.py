@@ -11,6 +11,8 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from flask_cors import CORS
+from flask_mail import Mail
+
 
 app = Flask(
   __name__, 
@@ -29,6 +31,15 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=1)
 app.json.compact = False
 
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.example.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'true').lower() in ['true', '1', 't']
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'false').lower() in ['true', '1', 't']
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
+mail = Mail(app)
 metadata = MetaData(naming_convention={
 "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 })

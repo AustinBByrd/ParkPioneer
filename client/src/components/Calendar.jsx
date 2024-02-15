@@ -5,6 +5,7 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import moment from 'moment';
 import { Modal, Button, Form, Container, Row, Col } from 'react-bootstrap';
 import Autocomplete from './Autocomplete';
+import EventDetailsModal from './EventDetailsModal';
 
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -23,72 +24,162 @@ function MyCalendar() {
     const [endTime, setEndTime] = useState('');
     const [parks, setParks] = useState([]);
     const [selectedPark, setSelectedPark] = useState({ name: '', id: null });
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:5555/api/events');
-                const fetchedEvents = response.data.map(event => ({
-                    ...event,
-                    title: event.name, // Assuming 'name' is the field from your backend
-                    start: new Date(event.start),
-                    end: new Date(event.end)
-                }));
-                setEvents(fetchedEvents);
-            } catch (error) {
-                console.error('Error fetching events:', error);
-            }
-        };
     
-        fetchEvents();
-
+    useEffect(() => {
         const fetchParks = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:5555/api/parks');
-                setParks(response.data);
+                const parksResponse = await axios.get('http://127.0.0.1:5555/api/parks');
+                setParks(parksResponse.data);
             } catch (error) {
                 console.error('Error fetching parks:', error);
             }
         };
 
         fetchParks();
+    }, [showSuccessPopup]);
+
+useEffect(() => {
+    async function fetchData() {
+        try {
+            const parksResponse = await axios.get('http://127.0.0.1:5555/api/parks');
+            setParks(parksResponse.data);
+
+            const eventsResponse = await axios.get('http://127.0.0.1:5555/api/events');
+                // Create a map/object for quick park ID to park name mapping
+                const parksMap = parksResponse.data.reduce((acc, park) => {
+                    acc[park.id] = park.name; // Assuming park has an id and name
+                    return acc;
+                }, {});
+    
+                const fetchedEvents = eventsResponse.data.map(event => ({
+                    ...event,
+                    title: event.name,
+                    start: new Date(event.start),
+                    end: new Date(event.end),
+                    parkName: parksMap[event.park_id] // Add park name to each event
+                }));
+                console.log(fetchedEvents)
+                setEvents(fetchedEvents);
+                setParks(parksResponse.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+    
+        fetchData();
     }, []);
-        
+    
+    
+    const handleEventClick = (event) => {
+        setSelectedEvent(event); // Set the clicked event as the selected event
+        setShowModal(true); // Show the modal
+    };
+    
+    
     const handleParkSelect = (park) => {
         setSelectedPark({ name: park.name, id: park.id });
     }; 
+    const SuccessPopup = () => {
+        return (
+            <Modal show={showSuccessPopup} onHide={() => setShowSuccessPopup(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Park Created Successfully</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>The park has been created successfully. Please re-enter the newly added park.</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="primary" onClick={() => setShowSuccessPopup(false)}>OK</Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    };
+    const handleParkCreation = async (parkName) => {
+        try {
+            const response = await axios.post('http://127.0.0.1:5555/api/parks', { name: parkName });
+            const newPark = response.data;
+            setParks([...parks, newPark]);
+            setSelectedPark({ name: newPark.name, id: newPark.id });
+            setShowSuccessPopup(true); // Set to show the success popup
+        } catch (error) {
+            console.error('Error creating park:', error);
+        }
+    };
+    
 
     const onEventDrop = async ({ event, start, end }) => {
         const updatedEvent = { ...event, start, end };
-      
+    
         try {
-          const response = await axios.patch(`http://127.0.0.1:5555/api/events/${event.id}`, {
-            
-            start: start.toISOString(),
-            end: end.toISOString(),
-          });
-          if (response.status === 200) {
-            const updatedEvents = events.map(evt => evt.id === event.id ? updatedEvent : evt);
-            setEvents(updatedEvents);
-            alert('Event updated successfully');
-          }
+            // Get the selected park's name from the state
+            const parkName = selectedPark.name || ''; // Set a default value if `selectedPark` is not set
+    
+            // Construct updatedEventData object with all necessary properties
+            const updatedEventData = {
+                name: updatedEvent.title,
+                description: updatedEvent.description,
+                start: start.toISOString(), // Faormat start date to ISO string
+                end: end.toISOString(),     // Format end date to ISO string
+                park_name: parkName,        // Include the park name
+            };
+    
+            console.log('Data being sent to the API:', updatedEventData);
+    
+            const response = await axios.patch(`http://127.0.0.1:5555/api/events/${event.id}`, updatedEventData);
+          
+            if (response.status === 200) {
+                const updatedEvents = events.map(evt => evt.id === event.id ? updatedEvent : evt);
+                setEvents(updatedEvents);
+                alert('Event updated successfully');
+            }
         } catch (error) {
             console.error('Error updating event:', error);
             console.log(error.response); // This will give you more insight into the error
             alert('Failed to update the event');
         }
+    };
+    const handleSignUp = async (eventId) => {
+        // Retrieve the current user's ID from local storage
+        const userId = localStorage.getItem('userId');
+      
+        if (!userId) {
+          alert('User not logged in');
+          return;
+        }
+      
+        try {
+          // Post request to sign up for the event using userId and eventId
+          await axios.post('http://127.0.0.1:5555/api/events/signup', { userId, eventId });
+          alert('Signed up successfully!');
+        } catch (error) {
+          console.error('Signup error:', error);
+          alert('Failed to sign up for the event');
+        }
+      
+        // Close the modal after signup
+        setShowModal(false);
       };
-
-      const onSelectSlot = ({ start, end }) => {
+      
+    const onSelectSlot = ({ start, end }) => {
         // Adjust the end date for display if needed
         const adjustedEnd = new Date(end);
         adjustedEnd.setDate(adjustedEnd.getDate() - 1);
-    
+
         // Update the state with the adjusted dates
         setCurrentEvent({ ...currentEvent, start, end: adjustedEnd });
         setStartDate(start);
         setEndDate(adjustedEnd);
         setModalIsOpen(true);
+    };
+    
+    const handleInvite = async (email) => {
+        const eventId = selectedEvent.id;
+        await axios.post('/api/events/invite', { eventId, email });
+        // Handle response or error
     };
     
 
@@ -153,10 +244,20 @@ function MyCalendar() {
                     onEventDrop={onEventDrop}
                     onEventResize={onEventResize}
                     onSelectSlot={onSelectSlot}
+                    onSelectEvent={handleEventClick}
                     style={{ height: 500, marginTop: '1rem' }}
                     resizable
                 />
             </Container>
+            {showModal && selectedEvent && (
+                <EventDetailsModal
+                    show={showModal}
+                    onHide={() => setShowModal(false)}
+                    eventDetails={selectedEvent}
+                    onSignUp={handleSignUp}
+                    onInvite={handleInvite}
+                />
+            )}
             <Modal show={modalIsOpen} onHide={() => setModalIsOpen(false)} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>New Event</Modal.Title>
@@ -176,8 +277,19 @@ function MyCalendar() {
                     <Autocomplete
                         suggestions={parks}
                         onSelected={(selectedPark) => setSelectedPark(selectedPark)}
+                        onCreateNew={handleParkCreation}
                     />
-
+                    <Modal show={showSuccessPopup} onHide={() => setShowSuccessPopup(false)}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Park Created Successfully</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <p>The park has been created successfully. Please re-enter the newly added park.</p>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="primary" onClick={() => setShowSuccessPopup(false)}>OK</Button>
+                        </Modal.Footer>
+                    </Modal>
                     <Form.Group className="mb-3">
                         <Form.Label>Description</Form.Label>
                         <Form.Control
@@ -237,3 +349,4 @@ function MyCalendar() {
 }
 
 export default MyCalendar;
+

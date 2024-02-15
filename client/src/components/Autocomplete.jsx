@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Autocomplete({ suggestions, onSelected }) {
+function Autocomplete({ suggestions, onSelected, onCreateNew }) {
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [userInput, setUserInput] = useState('');
 
@@ -23,6 +23,15 @@ function Autocomplete({ suggestions, onSelected }) {
     setFilteredSuggestions([]);
   };
 
+  const onCreateNewClick = () => {
+    onCreateNew(userInput);
+    setUserInput('');
+  };
+
+  const isExactMatch = suggestions.some(suggestion =>
+    suggestion.name.toLowerCase() === userInput.toLowerCase()
+  );
+
   return (
     <div>
       <input
@@ -39,6 +48,11 @@ function Autocomplete({ suggestions, onSelected }) {
             </li>
           ))}
         </ul>
+      )}
+      {userInput && !isExactMatch && (
+        <div onClick={onCreateNewClick} style={{ cursor: 'pointer', color: 'blue' }}>
+          Create new park: {userInput}
+        </div>
       )}
     </div>
   );
