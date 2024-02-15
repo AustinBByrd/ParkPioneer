@@ -48,7 +48,7 @@ ParkPioneer arose from a simple need within my friend circle - efficiently selec
 
 
 
-```markdown
+
 # ParkPioneer Project Setup Guide
 
 This README provides instructions on how to get the ParkPioneer project up and running on your local machine for development and testing purposes.
