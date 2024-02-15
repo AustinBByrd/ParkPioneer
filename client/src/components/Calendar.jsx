@@ -47,42 +47,36 @@ useEffect(() => {
         try {
             const parksResponse = await axios.get('http://127.0.0.1:5555/api/parks');
             setParks(parksResponse.data);
-
             const eventsResponse = await axios.get('http://127.0.0.1:5555/api/events');
-                // Create a map/object for quick park ID to park name mapping
                 const parksMap = parksResponse.data.reduce((acc, park) => {
-                    acc[park.id] = park.name; // Assuming park has an id and name
+                    acc[park.id] = park.name; 
                     return acc;
                 }, {});
-    
                 const fetchedEvents = eventsResponse.data.map(event => ({
                     ...event,
                     title: event.name,
                     start: new Date(event.start),
                     end: new Date(event.end),
-                    parkName: parksMap[event.parkId] // Add park name to each event
+                    parkName: parksMap[event.parkId]
                 }));
-                // console.log(fetchedEvents)
                 setEvents(fetchedEvents);
                 setParks(parksResponse.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-    
         fetchData();
     }, []);
     
-    
     const handleEventClick = (event) => {
-        setSelectedEvent(event); // Set the clicked event as the selected event
-        setShowModal(true); // Show the modal
+        setSelectedEvent(event); 
+        setShowModal(true); 
     };
-    
     
     const handleParkSelect = (park) => {
         setSelectedPark({ name: park.name, id: park.id });
     }; 
+
     const SuccessPopup = () => {
         return (
             <Modal show={showSuccessPopup} onHide={() => setShowSuccessPopup(false)}>
@@ -104,53 +98,43 @@ useEffect(() => {
             const newPark = response.data;
             setParks([...parks, newPark]);
             setSelectedPark({ name: newPark.name, id: newPark.id });
-            setShowSuccessPopup(true); // Set to show the success popup
+            setShowSuccessPopup(true); 
         } catch (error) {
             console.error('Error creating park:', error);
         }
     };
     
-
     const onEventDrop = async ({ event, start, end }) => {
-        const updatedEvent = { ...event, start, end };
+        const updatedEventData = {
+            start: start.toISOString(),
+            end: end.toISOString(),
+        };
     
         try {
-            // Get the selected park's name from the state
-            const parkName = selectedPark.name || ''; // Set a default value if `selectedPark` is not set
-    
-            // Construct updatedEventData object with all necessary properties
-            const updatedEventData = {
-                name: updatedEvent.title,
-                description: updatedEvent.description,
-                start: start.toISOString(), // Faormat start date to ISO string
-                end: end.toISOString(),     // Format end date to ISO string
-                park_name: parkName,        // Include the park name
-            };
-    
-            console.log('Data being sent to the API:', updatedEventData);
-    
-            const response = await axios.patch(`http://127.0.0.1:5555/api/events/${event.id}`, updatedEventData);
-          
+            const response = await axios.patch(`http://127.0.0.1:5555/api/events/update/${event.id}`, updatedEventData);
             if (response.status === 200) {
-                const updatedEvents = events.map(evt => evt.id === event.id ? updatedEvent : evt);
+                const updatedEvents = events.map(evt => 
+                    evt.id === event.id ? { ...evt, start, end } : evt
+                );
                 setEvents(updatedEvents);
                 alert('Event updated successfully');
+            } else {
+                alert('Failed to update the event. Please try again.');
             }
         } catch (error) {
             console.error('Error updating event:', error);
-            console.log(error.response); // This will give you more insight into the error
-            alert('Failed to update the event');
+            alert('Failed to update the event. Please try again.');
         }
     };
-    const handleSignUp = async (eventId) => {
-        // Retrieve the current user's ID from local storage
-        const userId = localStorage.getItem('userId');
+    
       
+    
+    const handleSignUp = async (eventId) => {
+        const userId = localStorage.getItem('userId');
         if (!userId) {
           alert('User not logged in');
           return;
         }
-      
         try {
           // Post request to sign up for the event using userId and eventId
           await axios.post('http://127.0.0.1:5555/api/events/signup', { userId, eventId });
@@ -159,17 +143,13 @@ useEffect(() => {
           console.error('Signup error:', error);
           alert('Failed to sign up for the event');
         }
-      
-        // Close the modal after signup
         setShowModal(false);
       };
       
     const onSelectSlot = ({ start, end }) => {
-        // Adjust the end date for display if needed
         const adjustedEnd = new Date(end);
         adjustedEnd.setDate(adjustedEnd.getDate() - 1);
 
-        // Update the state with the adjusted dates
         setCurrentEvent({ ...currentEvent, start, end: adjustedEnd });
         setStartDate(start);
         setEndDate(adjustedEnd);
@@ -182,9 +162,7 @@ useEffect(() => {
         // Handle response or error
     };
     
-
     const onEventResize = async ({ event, start, end }) => {
-        // This can call the same function as onEventDrop since the operation is similar
         onEventDrop({ event, start, end });
       };
       
@@ -194,13 +172,11 @@ useEffect(() => {
         startDateTime.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]));
         endDateTime.setHours(parseInt(endTime.split(':')[0]), parseInt(endTime.split(':')[1]));
     
-        
         if (!selectedPark.id) {
             alert('Please select a valid park.');
             return;
         }
-    
-        
+     
         const postData = {
             name: currentEvent.title, 
             description: currentEvent.description, 
@@ -228,8 +204,6 @@ useEffect(() => {
         }
     };
     
-    
-
     return (
         <>
             <Container fluid>

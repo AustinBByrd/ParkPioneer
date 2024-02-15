@@ -57,7 +57,7 @@ class Park(db.Model, SerializerMixin):
             'location': self.location,
             'description': self.description,
             'amenities': self.amenities,
-            # Here too, be cautious with relationships to avoid recursion
+            
         }
 
 class FavoritePark(db.Model, SerializerMixin):
@@ -97,10 +97,8 @@ class Event(db.Model, SerializerMixin):
     start = db.Column(db.DateTime)
     end = db.Column(db.DateTime)
 
-    # Add a relationship to Park
     park = db.relationship("Park", backref="events")
 
-    # Existing relationship with UserEvent
     user_events = db.relationship('UserEvent', back_populates='event', lazy=True)
 
 
@@ -116,14 +114,13 @@ class UserLocation(db.Model, SerializerMixin):
     __tablename__ = 'user_locations'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    location_name = db.Column(db.String(255), nullable=False)  # e.g., "Home", "Work"
+    location_name = db.Column(db.String(255), nullable=False) 
     address = db.Column(db.String(255), nullable=False)
     zip_code = db.Column(db.String(10), nullable=True)
 
     user = db.relationship("User", backref=db.backref('locations', lazy=True))
 
     def to_dict(self):
-        # Custom method to serialize UserLocation to a dict
         return {
             'id': self.id,
             'user_id': self.user_id,

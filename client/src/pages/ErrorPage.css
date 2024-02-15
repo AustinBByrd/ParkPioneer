@@ -1,0 +1,31 @@
+.error-page-container {
+    text-align: center;
+    padding: 50px 20px;
+  }
+  
+  .error-page-image {
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0;
+  }
+  
+  .error-page-actions {
+    margin-top: 30px;
+  }
+  
+  .btn {
+    text-decoration: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 0 10px;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+  }
+  

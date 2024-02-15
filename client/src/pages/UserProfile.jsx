@@ -24,8 +24,6 @@ function UserProfile() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   
-
-
   useEffect(() => {
     const fetchData = async () => {
       setDataLoaded(false); 

@@ -6,7 +6,6 @@ import UserSignUp from './pages/UserSignUp';
 import AdminConsole from './pages/AdminConsole'; 
 import ErrorPage from './pages/ErrorPage'; 
 import EventsCalendar from './pages/EventsCalendar'
-import Navbar from './components/Navbar'
 import UserProfile from './pages/UserProfile';
 import { UserProvider } from './contexts/UserContext';
 import './App.css';

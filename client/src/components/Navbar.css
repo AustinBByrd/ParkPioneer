@@ -1,81 +1,75 @@
-/* Make the navbar stick to the top */
 nav {
-    position: fixed;
-    top: 0;
-    left: 0; 
-    width: 100%;
-    background-color: #fff; /* Change as needed */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Adds a subtle shadow for depth */
-    z-index: 1000; /* Ensure navbar stays on top of other content */
-    padding: 0 10px; /* Add horizontal padding */
-  }
-  
-  /* Additional padding for the main content to avoid hiding behind the fixed navbar */
-  .main-content {
-    padding-top: 60px; /* Adjust the value to match the navbar's height */
-  }
-  
-  /* Navbar branding styles */
-  .navbar-brand {
-    display: flex;
-    align-items: center;
-  }
-  
-  .navbar-logo {
-    height: 90px; /* Adjust the size as needed */
-    margin-right: 10px; /* Space between logo and title */
-  }
-  
-  .navbar-title {
-    font-size: 1.5rem; /* Title size */
-    color: #333; /* Title color */
-    font-weight: bold; /* Make the title bold */
-  }
-  
-  /* Improves the visual layout of the navbar links */
-  nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  nav li {
-    margin-right: 20px; /* Increases spacing for a more open look */
-  }
-  
-  nav a {
-    text-decoration: none;
-    color: #000; /* Adjust color as needed */
-    font-weight: bold; /* Makes the text stand out more */
-  }
-  
-  /* Styles for the search input and button */
-  nav form {
-    display: right;
-    align-items: center;
-  }
-  
-  nav input[type="text"] {
-    padding: 8px;
-    margin-right: 10px; /* Ensures spacing between input and button */
-    border: 1px solid #ccc; /* Adds a border to the input */
-    border-radius: 4px; /* Rounds the corners of the input field */
-  }
-  
-  nav button {
-    padding: 8px 12px;
-    background-color: #007bff; /* Example button color, adjust as needed */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
-  }
-  
-  nav button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  padding: 0 10px;
+}
+
+.main-content {
+  padding-top: 60px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo {
+  height: 90px;
+  margin-right: 10px;
+}
+
+.navbar-title {
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: bold;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+nav li {
+  margin-right: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #000;
+  font-weight: bold;
+}
+
+nav form {
+  display: right;
+  align-items: center;
+}
+
+nav input[type="text"] {
+  padding: 8px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+nav button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+nav button:hover {
+  background-color: #0056b3;
+}

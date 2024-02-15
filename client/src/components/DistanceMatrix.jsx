@@ -14,7 +14,7 @@ function DistanceMatrixComponent({ favoritedParks }) {
     const { distanceMatrixData, originNames } = useUserContext();
     const [destinationMarkers, setDestinationMarkers] = useState([]);
     const [selectedDestination, setSelectedDestination] = useState(null);
-    console.log('favoritedParks:', favoritedParks);
+    // console.log('favoritedParks:', favoritedParks);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -22,8 +22,6 @@ function DistanceMatrixComponent({ favoritedParks }) {
     });
 
     const metersToMiles = (meters) => (meters / 1609.344).toFixed(2);
-
-    // Function to geocode addresses
     const geocodeAddress = async (address) => {
         const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
             params: {
@@ -36,39 +34,30 @@ function DistanceMatrixComponent({ favoritedParks }) {
 
     useEffect(() => {
         if (!isLoaded || !distanceMatrixData) return;
-
         const validDestinations = distanceMatrixData.destination_addresses.filter(address => address.trim() !== "");
-    
         const geocodeAllDestinations = async () => {
             const geocodedDestinations = await Promise.all(
                 validDestinations.map(address => geocodeAddress(address))
             );
-        
             setDestinationMarkers(geocodedDestinations.map((loc, index) => {
-                const currentAddress = validDestinations[index].toLowerCase(); // Normalize to lower case for comparison
-                console.log(`Geocoded Address: ${currentAddress}`);
-        
+                const currentAddress = validDestinations[index].toLowerCase();
+                // console.log(`Geocoded Address: ${currentAddress}`);
                 const parkMatch = favoritedParks.find(park => {
-                    const parkAddressNormalized = park.location.toLowerCase(); // Normalize to lower case
-                    // Check for partial match
+                    const parkAddressNormalized = park.location.toLowerCase();
                     return currentAddress.includes(parkAddressNormalized) || parkAddressNormalized.includes(currentAddress);
                 });
         
                 const parkName = parkMatch ? parkMatch.name : `Park ${index + 1}`;
-                console.log(`Matched Park Name: ${parkName}`);
-        
+                // console.log(`Matched Park Name: ${parkName}`);
                 return {
                     lat: loc.lat,
                     lng: loc.lng,
-                    name: parkName, // Include matched or default park name
+                    name: parkName,
                     index: index,
                 };
             }));
         };
         
-
-        
-
         geocodeAllDestinations();
     }, [isLoaded, distanceMatrixData, favoritedParks]);
 
@@ -92,7 +81,6 @@ function DistanceMatrixComponent({ favoritedParks }) {
                     onClick={() => handleMarkerClick(index)}
                 />
             ))}
-
             {selectedDestination !== null && (
                 <InfoWindow
                     position={{ lat: destinationMarkers[selectedDestination].lat, lng: destinationMarkers[selectedDestination].lng }}

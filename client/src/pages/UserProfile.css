@@ -1,79 +1,77 @@
 .user-profile-container {
-    margin: 20px;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .user-profile-container h2,
-  .user-profile-container h3 {
-    color: #333;
-  }
-  
-  .user-profile-container p {
-    color: #666;
-  }
-  
-  .user-profile-container button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .user-profile-container button:disabled {
-    background-color: #cccccc;
-  }
-  
-  .user-profile-container input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .user-profile-container div {
-    margin-bottom: 20px;
-  }
-  
-  /* Additional styles for location and park details */
-  .location-details,
-  .park-details {
-    margin-left: 20px;
-    margin-top: 10px;
-  }
-  
-  .location-details button,
-  .park-details button {
-    background-color: #dc3545;
-  }
-  
-  /* Style for the underline and pointer cursor on clickable elements */
-  .clickable {
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  .distance-matrix-button {
-    background-color: #4CAF50; /* Green background */
-    border: none; /* Remove borders */
-    color: white; /* White text */
-    padding: 15px 32px; /* Padding inside the button */
-    text-align: center; /* Centered text */
-    text-decoration: none; /* Remove underline from links */
-    display: inline-block; /* Set to inline-block */
-    font-size: 16px; /* Text size */
-    margin: 4px 2px; /* Margin around the button */
-    cursor: pointer; /* Cursor to pointer to indicate clickable */
-    border-radius: 5px; /* Rounded corners */
-    transition: background 0.3s ease; /* Smooth background color change on hover */
-  }
-  
-  .distance-matrix-button:hover {
-    background-color: #45a049; /* Darker shade of green on hover */
-  }
-  
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.user-profile-container h2,
+.user-profile-container h3 {
+  color: #333;
+}
+
+.user-profile-container p {
+  color: #666;
+}
+
+.user-profile-container button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.user-profile-container button:disabled {
+  background-color: #cccccc;
+}
+
+.user-profile-container input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.user-profile-container div {
+  margin-bottom: 20px;
+}
+
+.location-details,
+.park-details {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.location-details button,
+.park-details button {
+  background-color: #dc3545;
+}
+
+.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.distance-matrix-button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.distance-matrix-button:hover {
+  background-color: #45a049;
+}

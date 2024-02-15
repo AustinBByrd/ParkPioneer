@@ -5,11 +5,9 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-
 const mapContainerStyle = {
   height: "500px"
 };
-
 
 const libraries = ["places"];
 
@@ -23,22 +21,18 @@ function MyMapComponent() {
   const [markers, setMarkers] = useState([]);
   const [selectedPark, setSelectedPark] = useState(null);
   const [center, setCenter] = useState({ lat: 38.7875, lng: -90.6299 }); 
-
   const onMapLoad = useCallback((map) => {
     mapRef.current = map;
   }, []);
 
   useEffect(() => {
     if (!isLoaded || !mapRef.current) return;
-  
     const service = new window.google.maps.places.PlacesService(mapRef.current);
-  
     const request = {
       location: center,
       radius: '10000',
       type: ['park'],
     };
-  
     service.nearbySearch(request, (results, status) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
         const newMarkers = results.map((result) => ({
@@ -49,14 +43,10 @@ function MyMapComponent() {
           rating: result.rating,
           placeId: result.place_id,
         }));
-  
         setMarkers(newMarkers);
-
       }
     });
   }, [isLoaded, center]);
-  
-
   const geocodeAddress = () => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address: address }, (results, status) => {
@@ -70,14 +60,11 @@ function MyMapComponent() {
       }
     });
   };
-
   const handleMarkerClick = useCallback((park) => {
     setSelectedPark(park);
   }, []);
-
   if (loadError) return "Error loading maps";
   if (!isLoaded) return "Loading Maps";
-
   const addParkToFavorites = async (park) => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -85,13 +72,11 @@ function MyMapComponent() {
       alert('Please log in to add parks to your favorites.');
       return; 
     }
-    
     try {
       const response = await axios.post('http://localhost:5555/api/add-favorite', {
         userId,
         parkName: park.name,
         parkLocation: park.address,
-       
       });
       console.log('Park added to favorites:', response.data);
      
@@ -114,7 +99,7 @@ function MyMapComponent() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Enter a location"
-            className="form-control my-2" // Bootstrap class for styling
+            className="form-control my-2" 
           />
           <button onClick={geocodeAddress} className="btn btn-primary my-2">Find Location</button>
         </Col>
@@ -149,7 +134,6 @@ function MyMapComponent() {
                       e.stopPropagation(); 
                       addParkToFavorites(selectedPark);
                     }}>Add to Favorites</button>
-                    
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPark.lat},${selectedPark.lng}`}
                       target="_blank" 

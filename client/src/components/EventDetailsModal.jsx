@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import moment from 'moment'; // Assuming you're using moment.js for date formatting
+import moment from 'moment';
 
 const EventDetailsModal = ({ show, onHide, eventDetails, onSignUp, onInvite }) => {
   const [email, setEmail] = useState('');
@@ -11,12 +11,9 @@ const EventDetailsModal = ({ show, onHide, eventDetails, onSignUp, onInvite }) =
     setEmail('');
   };
 
-  // Function to format datetime
   const formatDateTime = (datetime) => {
-    return moment(datetime).format('LLLL'); // Formats the date and time nicely
+    return moment(datetime).format('LLLL');
   };
-
-  
 
   return (
     <Modal show={show} onHide={onHide}>
@@ -25,9 +22,7 @@ const EventDetailsModal = ({ show, onHide, eventDetails, onSignUp, onInvite }) =
       </Modal.Header>
       <Modal.Body>
         <p>{eventDetails.description}</p>
-        {/* Displaying the park name */}
         <p>Park: {eventDetails.park_name}</p>
-        {/* Displaying formatted start and end times/dates */}
         <p>Start: {formatDateTime(eventDetails.start)}</p>
         <p>End: {formatDateTime(eventDetails.end)}</p>
         <Form onSubmit={handleInvite}>

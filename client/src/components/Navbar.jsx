@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Navbar, Nav, Button } from 'react-bootstrap';
 import logo from '../../../assets/Icon.png';
-import './Navbar.css'; // Import your custom CSS if needed
+import './Navbar.css';
 
 
 function CustomNavbar() {
@@ -20,7 +20,6 @@ function CustomNavbar() {
     setIsLoggedIn(false);
     navigate('/');
   };
-
   return (
     <Navbar bg="light" expand="lg">
       <Container>
@@ -45,7 +44,6 @@ function CustomNavbar() {
               </>
             )}
           </Nav>
-          {/* Implement search functionality here */}
         </Navbar.Collapse>
       </Container>
     </Navbar>

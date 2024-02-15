@@ -37,7 +37,6 @@ from sqlalchemy.exc import SQLAlchemyError
 def create_event():
     data = request.json
     try:
-        # Assume park_name is optional and could be empty.
         park_name = data.get('park_name')
         park = Park.query.filter_by(name=park_name).first() if park_name else None
 
@@ -168,7 +167,7 @@ class EventAPI(Resource):
                 'description': event.description,
                 'start': event.start.isoformat(),
                 'end': event.end.isoformat(),
-                'park_name': event.park.name if event.park else None  # Ensure this does not cause a lazy loading issue
+                'park_name': event.park.name if event.park else None
             })
         else:
             events = Event.query.all()
@@ -178,36 +177,9 @@ class EventAPI(Resource):
                     'name': event.name,
                     'start': event.start.isoformat(),
                     'end': event.end.isoformat(),
-                    'park_name': event.park.name if event.park else None  # Simplified
+                    'park_name': event.park.name if event.park else None
                 } for event in events
             ])
-
-
-
-    # def post(self):
-    #     args = event_parser.parse_args()
-    #     park_name = args['park_name']
-        
-        
-    #     park = Park.query.filter_by(name=park_name).first()
-        
-
-    #     if not park:
-    #         park = Park(name=park_name)
-    #         db.session.add(park)
-    #         db.session.commit()
-        
-    #     new_event = Event(
-    #         name=args['name'],
-    #         description=args.get('description', ''),
-    #         start=dateutil_parser.parse(args['start']),
-    #         end=dateutil_parser.parse(args['end']),
-    #         park_id=park.id
-    #     )
-    #     db.session.add(new_event)
-    #     db.session.commit()
-    #     return make_response(jsonify({'message': 'Event created successfully', 'event': new_event.to_dict()}), 201)
-
 
     def put(self, event_id):
         event = Event.query.get(event_id)
@@ -231,21 +203,29 @@ class EventAPI(Resource):
         db.session.commit()
         return {'message': 'Event deleted successfully'}, 200
     
-    def patch(self, event_id):
-        args = event_parser.parse_args()
-        event = Event.query.get(event_id)
-        if not event:
-            return {'message': 'Event not found'}, 404
-        
-        # Update event with new details
-        event.name = args['name']
-        event.description = args.get('description', event.description)
-        event.start = dateutil_parser.parse(args['start'])
-        event.end = dateutil_parser.parse(args['end'])
+
+@app.route('/api/events/update/<int:event_id>', methods=['PATCH'])
+def update_event(event_id):
+    event = Event.query.get(event_id)
+    if not event:
+        return jsonify({'error': 'Event not found'}), 404
+    
+    data = request.get_json()
+    try:
+        if 'name' in data:
+            event.name = data['name']
+        if 'start' in data:
+            event.start = data['start']
+        if 'end' in data:
+            event.end = data['end']
+        if 'park_name' in data:
+            pass
+
         db.session.commit()
-
-        return {'message': 'Event updated successfully', 'event': event.to_dict()}, 200
-
+        return jsonify({'message': 'Event updated successfully'}), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/parks', methods=['GET'])
 def get_parks():
@@ -257,7 +237,6 @@ def create_park():
     data = request.json
     park_name = data.get('name')
 
-    # Check if a park with the given name already exists
     existing_park = Park.query.filter_by(name=park_name).first()
     if existing_park:
         return jsonify({'error': 'Park with this name already exists'}), 409
@@ -387,10 +366,9 @@ def get_distance_matrix():
 @app.route('/api/events/signup', methods=['POST'])
 def event_signup():
     data = request.json
-    user_id = data['userId']  # Ensure this matches the JSON key sent from the client
-    event_id = data['eventId']  # Ensure this matches the JSON key sent from the client
+    user_id = data['userId']  
+    event_id = data['eventId']  
 
-    # Check if the user is already signed up for the event to prevent duplicates
     existing_signup = UserEvent.query.filter_by(user_id=user_id, event_id=event_id).first()
     if existing_signup:
         return jsonify({'message': 'User already signed up for this event'}), 409
@@ -401,7 +379,7 @@ def event_signup():
         db.session.commit()
         return jsonify({'message': 'Signed up successfully'}), 200
     except Exception as e:
-        db.session.rollback()  # Rollback in case of error
+        db.session.rollback() 
         return jsonify({'error': str(e)}), 500
 
 
@@ -410,7 +388,6 @@ def event_invite():
     data = request.json
     event_id = data['eventId']
     email = data['email']
-    # Assuming you have a send_email function defined that sends the email
     try:
         send_email(
             'Park Pioneer Event Invitation',
@@ -419,8 +396,7 @@ def event_invite():
         )
         return jsonify({'message': 'Invitation sent successfully'}), 200
     except Exception as e:
-        # Log the exception and return a failure message
-        print(e)  # or use a proper logging mechanism
+        print(e)  
         return jsonify({'error': 'Failed to send invitation'}), 500
 
 
